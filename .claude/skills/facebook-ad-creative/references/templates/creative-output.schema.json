@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/facebook-ad-creative-output.schema.json",
+  "title": "Facebook Ad Creative Skill Output",
+  "type": "object",
+  "required": ["input_summary", "creative_plans", "quality_checks"],
+  "properties": {
+    "input_summary": { "type": "object" },
+    "creative_plans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "creative_plan", "model_prompts"],
+        "properties": {
+          "id": { "type": "string" },
+          "creative_plan": {
+            "type": "object",
+            "properties": {
+              "target_audience": { "type": "string" },
+              "interest_cues": { "type": "array", "items": { "type": "string" } },
+              "pain_point": { "type": "string" },
+              "core_benefit": { "type": "string" },
+              "angle": { "type": "string" },
+              "scene": { "type": "string" },
+              "style": { "type": "string" },
+              "layout": { "type": "string" },
+              "copy": { "type": "object" },
+              "difference_statement": { "type": "string" }
+            }
+          },
+          "model_prompts": {
+            "type": "object",
+            "properties": {
+              "universal": { "type": "string" },
+              "gpt_image_2": { "type": "string" },
+              "nano_banana": { "type": "string" },
+              "negative_constraints": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "quality_checks": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

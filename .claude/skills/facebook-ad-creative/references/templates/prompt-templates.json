@@ -1,0 +1,5 @@
+{
+  "universal": "Create a Meta/Facebook ad image for {product_name}. Product: {product_description}. Target audience: {target_audience}. Audience interest cues: {interest_cues}. Creative angle: {angle}. Scene: {scene}. Visual style: {style}. Layout: {layout}. Main benefit: {core_benefit}. Composition: make the product or subject immediately visible for mobile feed browsing, with a clear focal point and uncluttered hierarchy. Text overlay mode: {text_overlay_mode}. On-image copy: headline '{headline}', subheadline '{subheadline}', bullets {bullets}, CTA '{cta}'. Aspect ratio: {aspect_ratio}. Brand tone: {brand_tone}. {difference_statement}",
+  "gpt_image_2": "High-quality advertising image, precise composition, crisp readable typography if text is requested, realistic product proportions, clean hierarchy, mobile-first Meta feed layout. Follow this creative brief: {universal_prompt}",
+  "nano_banana": "Ad creative prompt with strong visual distinction, clear product hero, natural commercial lighting, readable short text only, no clutter. Use a direct scene description and concrete layout instructions. Brief: {universal_prompt}"
+}

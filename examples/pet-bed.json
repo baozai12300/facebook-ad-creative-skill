@@ -1,0 +1,23 @@
+{
+  "product_name": "CozyNest Orthopedic Pet Bed",
+  "product_category": "pet home",
+  "product_description": "A washable orthopedic pet bed designed for everyday comfort, joint support, and cleaner living rooms.",
+  "key_features": ["removable washable cover", "orthopedic foam", "non-slip bottom"],
+  "benefits": ["cozier rest", "cleaner home setup", "supportive sleep"],
+  "target_audiences": ["dog parents", "senior pet owners", "apartment pet owners"],
+  "audience_location": "United States",
+  "price_positioning": "mid-range",
+  "brand_tone": "warm, practical, caring",
+  "platform": "facebook",
+  "aspect_ratio": "4:5",
+  "language": "en",
+  "generation_count": 5,
+  "campaign_goal": "purchase",
+  "awareness_stage": "mixed",
+  "interests": ["dog care", "pet comfort", "home cleaning"],
+  "scene_preferences": ["cozy living room with dog resting", "laundry room washable cover demo"],
+  "text_overlay_mode": "standard",
+  "cta_mode": "direct",
+  "offer_info": "20% off this week",
+  "variation_strength": "high"
+}

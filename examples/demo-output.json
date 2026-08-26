@@ -1,0 +1,41 @@
+{
+  "input_summary": {
+    "product_name": "GlowBarrier Vitamin C Serum",
+    "product_category": "beauty skincare",
+    "generation_count": 2,
+    "aspect_ratio": "4:5",
+    "variation_strength": "high"
+  },
+  "creative_plans": [
+    {
+      "id": "creative_01",
+      "creative_plan": {
+        "target_audience": "busy professionals",
+        "interest_cues": ["skincare routine", "clean beauty", "beauty skincare"],
+        "pain_point": "busy professionals need a simpler way to get brighter-looking skin",
+        "core_benefit": "brighter-looking skin",
+        "angle": "Glow-up routine",
+        "scene": "bathroom vanity morning routine",
+        "style": "minimal ecommerce style",
+        "layout": "Meta ASC V1: top headline, center product, bottom CTA",
+        "copy": {
+          "headline": "Meet GlowBarrier Vitamin C Serum",
+          "subheadline": "Free shipping over $35",
+          "bullets": ["10% vitamin C"],
+          "cta": "See Why"
+        },
+        "difference_statement": "This variation focuses on Glow-up routine for busy professionals, using a distinct bathroom vanity morning routine, minimal ecommerce style, and Meta ASC V1 layout compared with the other creatives in this batch."
+      },
+      "model_prompts": {
+        "universal": "Create a Meta/Facebook ad image for GlowBarrier Vitamin C Serum...",
+        "gpt_image_2": "High-quality commercial ad image with precise layout control...",
+        "nano_banana": "Direct image prompt: clear product hero, distinct visual concept...",
+        "negative_constraints": ["avoid cluttered composition", "avoid tiny product placement", "avoid excessive text overlay"]
+      }
+    }
+  ],
+  "quality_checks": [
+    "Generated creative variants.",
+    "Scene-style-layout combinations are rotated to reduce same-template outputs."
+  ]
+}

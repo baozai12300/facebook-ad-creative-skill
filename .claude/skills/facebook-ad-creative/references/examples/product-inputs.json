@@ -1,0 +1,18 @@
+{
+  "note": "Copy one object into examples/*.json and customize it.",
+  "minimal": {
+    "product_name": "Product Name",
+    "product_category": "kitchen",
+    "product_description": "Describe what the product is, who it helps, and what problem it solves."
+  },
+  "batch_testing": {
+    "product_name": "Everyday Product",
+    "product_category": "home",
+    "product_description": "A practical consumer product for daily use.",
+    "key_features": ["feature one", "feature two", "feature three"],
+    "benefits": ["benefit one", "benefit two", "benefit three"],
+    "generation_count": 8,
+    "text_overlay_mode": "light",
+    "variation_strength": "high"
+  }
+}

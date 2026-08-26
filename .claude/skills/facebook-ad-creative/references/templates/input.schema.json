@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/facebook-ad-creative-input.schema.json",
+  "title": "Facebook Ad Creative Skill Input",
+  "type": "object",
+  "required": ["product_name", "product_category", "product_description"],
+  "properties": {
+    "product_name": { "type": "string", "minLength": 1 },
+    "product_category": { "type": "string", "minLength": 1 },
+    "product_description": { "type": "string", "minLength": 1 },
+    "key_features": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "benefits": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "target_audiences": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "audience_location": { "type": "string", "default": "United States" },
+    "price_positioning": {
+      "type": "string",
+      "enum": ["budget", "mid-range", "premium", "luxury"],
+      "default": "mid-range"
+    },
+    "brand_tone": { "type": "string", "default": "clear, practical, trustworthy" },
+    "visual_style_preference": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "banned_elements": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "platform": { "type": "string", "enum": ["facebook", "instagram", "meta"], "default": "facebook" },
+    "aspect_ratio": { "type": "string", "enum": ["1:1", "4:5", "9:16", "16:9"], "default": "4:5" },
+    "language": { "type": "string", "default": "en" },
+    "generation_count": { "type": "integer", "minimum": 1, "maximum": 24, "default": 4 },
+    "campaign_goal": {
+      "type": "string",
+      "enum": ["awareness", "traffic", "engagement", "lead", "purchase", "retention"],
+      "default": "purchase"
+    },
+    "awareness_stage": {
+      "type": "string",
+      "enum": ["cold", "warm", "hot", "mixed"],
+      "default": "cold"
+    },
+    "interests": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "scene_preferences": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "angle_preferences": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "text_overlay_mode": {
+      "type": "string",
+      "enum": ["none", "light", "standard", "heavy"],
+      "default": "light"
+    },
+    "cta_mode": { "type": "string", "enum": ["none", "soft", "direct"], "default": "soft" },
+    "offer_info": { "type": "string", "default": "" },
+    "seasonality": { "type": "string", "default": "" },
+    "compliance_notes": { "type": "string", "default": "" },
+    "competitor_style_notes": { "type": "string", "default": "" },
+    "variation_strength": { "type": "string", "enum": ["low", "medium", "high"], "default": "high" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "category": "beauty",
+    "product_examples": ["vitamin C serum", "lip mask", "hydrating toner"]
+  },
+  {
+    "category": "pet",
+    "product_examples": ["orthopedic pet bed", "slow feeder bowl", "portable water bottle"]
+  },
+  {
+    "category": "home",
+    "product_examples": ["drawer organizer", "linen storage basket", "cord management box"]
+  },
+  {
+    "category": "kitchen",
+    "product_examples": ["vegetable chopper", "silicone storage bag", "countertop compost bin"]
+  },
+  {
+    "category": "apparel",
+    "product_examples": ["travel hoodie", "seamless leggings", "work tote"]
+  },
+  {
+    "category": "electronics",
+    "product_examples": ["portable charger", "desk lamp", "wireless earbuds"]
+  },
+  {
+    "category": "health",
+    "product_examples": ["posture corrector", "water bottle", "sleep mask"]
+  },
+  {
+    "category": "gift",
+    "product_examples": ["personalized necklace", "photo frame", "self-care box"]
+  }
+]
