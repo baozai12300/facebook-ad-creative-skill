@@ -32,4 +32,3 @@ The Audience Engine converts product inputs into buyer hypotheses.
 - Electronics: productivity users, commuters, creators, tech gift buyers
 - Health: wellness shoppers, routine builders, active lifestyle buyers; avoid medical claims
 - Gifts: last-minute gift buyers, relationship-based shoppers, holiday shoppers
-

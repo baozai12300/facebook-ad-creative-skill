@@ -26,6 +26,5 @@ Run:
 
 ```bash
 python -m pytest tests/test_compile_creatives.py
-python .claude/skills/facebook-ad-creative/scripts/compile_creatives.py examples/beauty-serum.json
+python scripts/compile_creatives.py examples/beauty-serum.json
 ```
-

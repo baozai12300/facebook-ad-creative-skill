@@ -24,4 +24,3 @@ Use angles to prevent a batch from becoming one repeated ad with small visual ch
 - 4 creatives: use at least 4 different angles.
 - 6 creatives: include at least one proof/UGC angle and one product clarity angle.
 - 8 creatives: include at least two cold-audience angles, two warm-audience angles, and one hot-audience offer angle.
-

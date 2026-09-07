@@ -42,4 +42,3 @@
 - Use infographic/callout style for feature-heavy products.
 - Use lifestyle style when the benefit is emotional or identity based.
 - Avoid repeating the same scene-style pair in a batch.
-

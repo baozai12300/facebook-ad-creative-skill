@@ -4,9 +4,6 @@ from pathlib import Path
 
 SCRIPT_PATH = (
     Path(__file__).resolve().parents[1]
-    / ".claude"
-    / "skills"
-    / "facebook-ad-creative"
     / "scripts"
     / "compile_creatives.py"
 )

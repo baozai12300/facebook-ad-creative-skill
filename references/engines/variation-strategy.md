@@ -31,4 +31,3 @@ Batch generation must create meaningfully different ad hypotheses.
 Every prompt must include a sentence such as:
 
 `This variation focuses on [angle] for [audience], using a distinct [scene/style/layout] compared with the other creatives in this batch.`
-

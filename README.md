@@ -16,24 +16,22 @@
 
 ```text
 facebook-ad-creative-skill/
-├── .claude/skills/facebook-ad-creative/
-│   ├── SKILL.md
-│   ├── README.md
-│   ├── scripts/
-│   │   └── compile_creatives.py
-│   └── references/
-│       ├── engines/
-│       │   ├── audience-engine.md
-│       │   ├── angle-engine.md
-│       │   ├── layout-engine.md
-│       │   ├── scene-style-engine.md
-│       │   └── variation-strategy.md
-│       ├── templates/
-│       │   ├── input.schema.json
-│       │   ├── creative-output.schema.json
-│       │   └── prompt-templates.json
-│       └── examples/
-│           └── product-inputs.json
+├── SKILL.md
+├── scripts/
+│   └── compile_creatives.py
+├── references/
+│   ├── engines/
+│   │   ├── audience-engine.md
+│   │   ├── angle-engine.md
+│   │   ├── layout-engine.md
+│   │   ├── scene-style-engine.md
+│   │   └── variation-strategy.md
+│   ├── templates/
+│   │   ├── input.schema.json
+│   │   ├── creative-output.schema.json
+│   │   └── prompt-templates.json
+│   └── examples/
+│       └── product-inputs.json
 ├── data/
 │   └── sample-products.json
 ├── docs/
@@ -52,12 +50,12 @@ facebook-ad-creative-skill/
 
 ## 快速使用
 
-在支持 Skills 的 AI 编程环境中，把仓库中的 `.claude/skills/facebook-ad-creative` 放到对应的 skills 目录。
+仓库根目录本身就是符合开放 Agent Skills 规范的 Skill 包。可直接从 GitHub 安装，或把整个仓库放入 Claude、OpenAI Codex、VS Code/GitHub Copilot 及其他兼容 Agent Skills 的客户端所使用的 skills 目录。项目级跨客户端共享时，也可放在 `.agents/skills/facebook-ad-creative/`。
 
 也可以直接运行脚本，把产品输入编译成广告创意计划和图片模型 Prompt：
 
 ```bash
-python .claude/skills/facebook-ad-creative/scripts/compile_creatives.py examples/beauty-serum.json
+python scripts/compile_creatives.py examples/beauty-serum.json
 ```
 
 输出内容包含：

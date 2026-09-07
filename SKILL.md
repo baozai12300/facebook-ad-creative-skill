@@ -1,5 +1,5 @@
 ---
-name: facebook-ad-creative
+name: facebook-ad-creative-skill
 description: Generate structured Facebook/Meta ad image creative plans and model-ready prompts for ecommerce and consumer products, with audience, angle, scene, style, layout, text overlay, and batch variation strategy.
 ---
 
@@ -92,5 +92,5 @@ Each creative must include:
 For deterministic prompt compilation from JSON input, run:
 
 ```bash
-python .claude/skills/facebook-ad-creative/scripts/compile_creatives.py examples/beauty-serum.json
+python scripts/compile_creatives.py examples/beauty-serum.json
 ```

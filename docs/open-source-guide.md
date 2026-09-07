@@ -12,7 +12,7 @@ Alternative:
 
 Publish the full repository:
 
-- `.claude/skills/facebook-ad-creative`
+- 仓库根目录（包含 `SKILL.md`、`references/` 和 `scripts/`）
 - `examples`
 - `data`
 - `docs`
@@ -50,4 +50,3 @@ Contributors should avoid templates that imply:
 - fake reviews or fake endorsements
 - guaranteed advertising performance
 - unauthorized competitor claims
-
