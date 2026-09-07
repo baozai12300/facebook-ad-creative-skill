@@ -77,6 +77,11 @@ Each creative must include:
 - Do not use the same scene, style, and layout combination twice in one batch.
 - Keep product visible and large enough for mobile feed.
 - Keep text overlay short and readable.
+- Treat `text_overlay_mode` as authoritative. When it is `none`, prohibit all rendered words, letters, CTA buttons, badges, logos, and pseudo-text. Otherwise, on-image copy is required rather than optional.
+- For text-enabled creatives, define an exact headline, optional subheadline, no more than 2-3 compact benefit callouts, and an optional CTA. Keep the total text footprint near or below 20% of the canvas.
+- Put typography instructions inside every model prompt: exact copy, language, hierarchy, placement, alignment, contrast, safe margins, and natural line breaks. Never rely on a separate prose plan to make the image model render text.
+- Require correct spelling. Prohibit garbled glyphs, placeholder pseudo-text, duplicated copy, and model-invented prices, discounts, ratings, brands, claims, or offers.
+- Adapt density to the selected layout: UGC and lifestyle may use only a headline; benefit and callout layouts may use 2-3 short labels; never force every copy element into every layout.
 - Avoid crowded compositions and generic stock-ad language.
 - Use social proof only when provided or clearly framed as placeholder/example copy.
 - For regulated categories such as health, finance, or supplements, avoid medical claims and add compliance cautions.
@@ -89,4 +94,3 @@ For deterministic prompt compilation from JSON input, run:
 ```bash
 python .claude/skills/facebook-ad-creative/scripts/compile_creatives.py examples/beauty-serum.json
 ```
-

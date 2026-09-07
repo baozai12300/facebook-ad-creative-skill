@@ -1,5 +1,16 @@
 # Layout Engine
 
+## Typography contract
+
+- `none`: pure visual; no headline, caption, callout, CTA, badge, logo, letterform, or decorative pseudo-text.
+- `light`: headline plus optional CTA; use at most two text zones.
+- `standard`: headline, optional subheadline, up to two benefit callouts, and optional CTA.
+- `heavy`: headline, subheadline, up to three callouts, and CTA only when the layout has enough negative space. Heavy never means crowded.
+- Text-enabled prompts must include the exact copy and target language. The image model must not invent or rewrite it.
+- Keep copy inside mobile safe margins, separated from faces and critical product details, with strong contrast and natural line breaks.
+- Use a maximum of two type families, a clear headline-to-supporting-copy size ratio, and total text near or below 20% of the canvas.
+- Layout-specific copy takes precedence over filling every field. Empty optional fields must stay absent rather than becoming placeholder text.
+
 ## Layouts
 
 ### Meta ASC V1
@@ -64,4 +75,3 @@
 - Structure: product embedded in a moment with light headline.
 - Best for: emotional, gift, fashion, home, beauty.
 - Text: aspirational but direct.
-

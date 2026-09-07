@@ -56,3 +56,18 @@ def test_missing_required_fields_raise_error():
         assert "product_category" in str(exc)
     else:
         raise AssertionError("Expected ValueError for missing fields")
+
+
+def test_text_mode_compiles_required_typography_contract():
+    data = compile_creatives.normalize({"product_name":"Bag","product_category":"apparel","product_description":"A compact everyday bag.","language":"en","text_overlay_mode":"standard"})
+    prompt = compile_creatives.build_creatives(data)["creative_plans"][0]["model_prompts"]["universal"]
+    assert "Rendering the supplied copy is required" in prompt
+    assert "Target copy language: en" in prompt
+    assert "Do not invent extra copy" in prompt
+
+
+def test_none_mode_prohibits_all_rendered_text():
+    data = compile_creatives.normalize({"product_name":"Bag","product_category":"apparel","product_description":"A compact everyday bag.","text_overlay_mode":"none"})
+    creative = compile_creatives.build_creatives(data)["creative_plans"][0]
+    assert creative["creative_plan"]["copy"] == {"headline":"","subheadline":"","bullets":[],"cta":""}
+    assert "Render no words, letters" in creative["model_prompts"]["universal"]

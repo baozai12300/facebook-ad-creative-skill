@@ -202,9 +202,15 @@ def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
         f"Scene: {plan['scene']}. Visual style: {plan['style']}. "
         f"Layout: {plan['layout']}. Main benefit: {plan['core_benefit']}. "
         f"Use aspect ratio {data['aspect_ratio']} for mobile-first browsing. "
-        f"On-image copy mode: {data['text_overlay_mode']}. "
+        f"On-image copy mode: {data['text_overlay_mode']}. Target copy language: {data['language']}. "
         f"Headline: '{copy['headline']}'. Subheadline: '{copy['subheadline']}'. "
         f"Bullets: {', '.join(copy['bullets'])}. CTA: '{copy['cta']}'. "
+        + (
+            "Render no words, letters, logos, badges, CTA controls, or decorative pseudo-text. "
+            if data["text_overlay_mode"] == "none"
+            else "Rendering the supplied copy is required. Preserve exact spelling and use a clear mobile-first hierarchy, natural line breaks, strong contrast, safe margins, and layout-appropriate density near or below 20 percent of the canvas. Do not invent extra copy, prices, discounts, ratings, brands, claims, or offers. "
+        )
+        +
         f"Brand tone: {data['brand_tone']}. Campaign goal: {data['campaign_goal']}. "
         f"{plan['difference_statement']} "
         f"Negative constraints: {', '.join(banned)}."
@@ -259,11 +265,11 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                     "universal": prompt,
                     "gpt_image_2": (
                         "High-quality commercial ad image with precise layout control, realistic product rendering, "
-                        "clean readable typography when text is requested, and strong mobile feed clarity. " + prompt
+                        "clean readable typography, and strong mobile feed clarity. Treat text mode and exact copy as hard constraints. " + prompt
                     ),
                     "nano_banana": (
                         "Direct image prompt: clear product hero, distinct visual concept, natural commercial lighting, "
-                        "short readable ad text only, no clutter. " + prompt
+                        "controlled readable ad typography and no clutter. Treat text mode and exact copy as hard constraints. " + prompt
                     ),
                     "negative_constraints": data["banned_elements"] + DEFAULT_NEGATIVES,
                 },
