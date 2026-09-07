@@ -24,6 +24,20 @@
               "scene": { "type": "string" },
               "style": { "type": "string" },
               "layout": { "type": "string" },
+              "audience_scene_bridge": {
+                "type": "object",
+                "properties": {
+                  "use_moment": { "type": "string" },
+                  "visible_behavior": { "type": "string" },
+                  "environment_cues": { "type": "array", "items": { "type": "string" } },
+                  "prop_cues": { "type": "array", "items": { "type": "string" } },
+                  "casting_direction": { "type": "string" },
+                  "camera_language": { "type": "string" },
+                  "copy_tone": { "type": "string" },
+                  "why_it_fits": { "type": "string" }
+                },
+                "required": ["use_moment", "visible_behavior", "environment_cues", "prop_cues", "casting_direction", "camera_language", "copy_tone", "why_it_fits"]
+              },
               "copy": { "type": "object" },
               "difference_statement": { "type": "string" }
             }

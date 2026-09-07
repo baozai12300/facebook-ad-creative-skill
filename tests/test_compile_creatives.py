@@ -68,3 +68,14 @@ def test_none_mode_prohibits_all_rendered_text():
     creative = compile_creatives.build_creatives(data)["creative_plans"][0]
     assert creative["creative_plan"]["copy"] == {"headline":"","subheadline":"","bullets":[],"cta":""}
     assert "Render no words, letters" in creative["model_prompts"]["universal"]
+
+
+def test_audience_is_fused_into_scene_and_prompt():
+    data = compile_creatives.normalize({"product_name":"Travel Bag","product_category":"apparel","product_description":"A compact bag for daily carry.","target_audiences":["urban commuters"],"benefits":["hands-free organization"]})
+    creative = compile_creatives.build_creatives(data)["creative_plans"][0]
+    bridge = creative["creative_plan"]["audience_scene_bridge"]
+    prompt = creative["model_prompts"]["universal"]
+    assert bridge["use_moment"] and bridge["visible_behavior"] and bridge["camera_language"]
+    assert "urban commuters" in bridge["why_it_fits"]
+    assert "Audience-scene bridge" in prompt
+    assert bridge["visible_behavior"] in prompt

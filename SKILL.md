@@ -17,7 +17,7 @@ Create structured ad creative plans and image model prompts that help users expl
 2. Normalize missing fields with practical defaults.
 3. Build audience hypotheses.
 4. Select creative angles.
-5. Select scenes and styles.
+5. Build an audience-scene bridge, then select scenes and styles that visibly express the audience hypothesis.
 6. Select layouts and text overlay mode.
 7. Generate batch variants with clear differences.
 8. Produce Creative Plan and Model Prompt for each creative.
@@ -31,6 +31,7 @@ Create structured ad creative plans and image model prompts that help users expl
 - Audience rules: `references/engines/audience-engine.md`
 - Angle rules: `references/engines/angle-engine.md`
 - Scene and style rules: `references/engines/scene-style-engine.md`
+- Audience-scene fusion rules: `references/engines/audience-scene-fusion.md`
 - Layout rules: `references/engines/layout-engine.md`
 - Batch diversity rules: `references/engines/variation-strategy.md`
 
@@ -60,6 +61,7 @@ Each creative must include:
 
 - target audience
 - interest cues
+- audience-scene bridge: use moment, visible behavior, environment cues, prop cues, and copy tone
 - pain point or desire
 - selling angle
 - scene
@@ -82,6 +84,8 @@ Each creative must include:
 - Put typography instructions inside every model prompt: exact copy, language, hierarchy, placement, alignment, contrast, safe margins, and natural line breaks. Never rely on a separate prose plan to make the image model render text.
 - Require correct spelling. Prohibit garbled glyphs, placeholder pseudo-text, duplicated copy, and model-invented prices, discounts, ratings, brands, claims, or offers.
 - Adapt density to the selected layout: UGC and lifestyle may use only a headline; benefit and callout layouts may use 2-3 short labels; never force every copy element into every layout.
+- Do not leave the audience as a metadata label. Translate it into a plausible use moment, observable behavior, environment cues, props, styling, camera distance, and copy tone, then include that bridge inside every model prompt.
+- Express audiences through context and behavior rather than protected traits, inferred sensitive attributes, stereotypes, or exaggerated demographic signals. People are optional when a product-led scene communicates the audience more accurately.
 - Avoid crowded compositions and generic stock-ad language.
 - Use social proof only when provided or clearly framed as placeholder/example copy.
 - For regulated categories such as health, finance, or supplements, avoid medical claims and add compliance cautions.

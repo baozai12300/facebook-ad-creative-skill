@@ -188,8 +188,24 @@ def build_copy(data: Dict[str, Any], angle_name: str, benefit: str, index: int) 
     }
 
 
+def build_audience_scene_bridge(data: Dict[str, Any], audience: str, scene: str, benefit: str, index: int) -> Dict[str, Any]:
+    moments = ["a recognizable daily friction point", "the moment the product is selected for use", "active product use", "the immediate payoff after use"]
+    camera = ["close mobile-feed product-and-action framing", "eye-level contextual medium shot", "hands-and-product detail view", "product-led environmental hero shot"]
+    return {
+        "use_moment": cycle(moments, index),
+        "visible_behavior": f"Show the product being selected or used to achieve {benefit}",
+        "environment_cues": [scene, f"context appropriate to {audience}", "credible everyday details"],
+        "prop_cues": ["only use-case-relevant props", "keep props subordinate to the product"],
+        "casting_direction": f"Use a person only when their action clarifies the use case for {audience}; avoid demographic stereotypes",
+        "camera_language": cycle(camera, index),
+        "copy_tone": f"{data['brand_tone']} language for a {data['awareness_stage']}-awareness audience",
+        "why_it_fits": f"This moment connects {audience} with {benefit} through visible product use in {scene}.",
+    }
+
+
 def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
     copy = plan["copy"]
+    bridge = plan["audience_scene_bridge"]
     banned = data["banned_elements"] + DEFAULT_NEGATIVES
     description = data["product_description"].rstrip(".")
     angle_rationale = plan["angle_rationale"].rstrip(".")
@@ -199,6 +215,7 @@ def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
         f"Target audience: {plan['target_audience']} in {data['audience_location']}. "
         f"Interest cues: {', '.join(plan['interest_cues'])}. "
         f"Creative angle: {plan['angle']} - {angle_rationale}. "
+        f"Audience-scene bridge: use moment {bridge['use_moment']}; visible behavior {bridge['visible_behavior']}; environment cues {', '.join(bridge['environment_cues'])}; prop cues {', '.join(bridge['prop_cues'])}; casting direction {bridge['casting_direction']}; camera language {bridge['camera_language']}; copy tone {bridge['copy_tone']}; rationale {bridge['why_it_fits']} "
         f"Scene: {plan['scene']}. Visual style: {plan['style']}. "
         f"Layout: {plan['layout']}. Main benefit: {plan['core_benefit']}. "
         f"Use aspect ratio {data['aspect_ratio']} for mobile-first browsing. "
@@ -240,6 +257,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
 
         target_audience = cycle(audiences, i)
         core_benefit = cycle(benefits, i)
+        bridge = build_audience_scene_bridge(data, target_audience, scene, core_benefit, i)
         plan = {
             "target_audience": target_audience,
             "interest_cues": [cycle(interests, i), cycle(interests, i + 1), data["product_category"]],
@@ -250,6 +268,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
             "scene": scene,
             "style": style,
             "layout": layout,
+            "audience_scene_bridge": bridge,
             "copy": build_copy(data, angle_name, core_benefit, i),
             "difference_statement": (
                 f"This variation focuses on {angle_name} for {target_audience}, "
