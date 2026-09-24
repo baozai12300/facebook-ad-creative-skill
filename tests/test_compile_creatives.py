@@ -302,3 +302,62 @@ def test_quality_scanner_rejects_unsupported_claim_patterns():
     findings = compile_creatives.unsupported_claim_findings(data, "PRODUCT: Compact Hair Dryer. TEXT: 110,000 RPM. 3× faster. Works for all hair types. AVOID: clutter.")
     assert any("numeric claim" in finding for finding in findings)
     assert any("all hair types" in finding for finding in findings)
+
+
+def test_copy_tiers_allow_creative_language_without_claim_evidence():
+    data = compile_creatives.normalize({"product_name":"City Sling","product_category":"apparel bag","product_description":"Product image only."})
+    copy = compile_creatives.visual_only_copy(data, {"name":"Lifestyle Context"}, "city commute")
+    tiers = compile_creatives.classify_copy(data, copy)
+    assert copy["headline"] == "BUILT AROUND YOUR ROUTINE"
+    assert tiers["headline"] == "creative_lifestyle"
+    assert tiers["support"] == "soft_benefit"
+    assert compile_creatives.unsupported_hard_copy_findings(data, copy) == []
+
+
+def test_hard_claim_still_requires_matching_evidence():
+    without = compile_creatives.normalize({"product_name":"City Sling","product_category":"apparel bag","product_description":"Product image only."})
+    hard_copy = {"headline":"WATERPROOF","support":"","callouts":[],"cta":""}
+    assert compile_creatives.classify_copy_tier(without, "WATERPROOF") == "hard_claim"
+    assert compile_creatives.unsupported_hard_copy_findings(without, hard_copy)
+
+    supplied = compile_creatives.normalize({"product_name":"City Sling","product_category":"apparel bag","product_description":"Supplied product facts.","verified_facts":["waterproof"]})
+    assert compile_creatives.unsupported_hard_copy_findings(supplied, hard_copy) == []
+
+    material_copy = {"headline":"Made from full-grain leather","support":"","callouts":[],"cta":""}
+    assert compile_creatives.unsupported_hard_copy_findings(without, material_copy)
+
+
+def test_visual_only_batch_uses_art_directed_layouts_and_copy_hierarchy():
+    data = compile_creatives.normalize({"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"Product image only.","reference_image":"dryer.png","generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    layouts = {item["visual_plan"]["layout"] for item in output["creative_plans"]}
+    assert {"L11 Editorial Poster", "L12 Detail Crop", "L13 Asymmetric Grid"} <= layouts
+    assert all(item["visual_plan"]["typography"] for item in output["creative_plans"])
+    assert all(item["visual_plan"]["graphic_structure"] for item in output["creative_plans"])
+    assert all("DESIGN:" in item["render_prompt"] for item in output["creative_plans"])
+    assert all(item["evidence_lock"]["used_claims"] == [] for item in output["creative_plans"])
+    assert output["quality_checks"]["pass"] is True
+
+
+def test_five_creative_batch_guarantees_structural_layout_coverage():
+    base = {"product_name":"Geometric Sling Bag","product_category":"sling bag / crossbody bag","product_description":"Product image only.","reference_image":"bag.png","reference_image_visual_facts":["black and gray geometric exterior","single shoulder strap","front zipper sections","compact sling-bag form"],"generation_count":5,"variation_strength":"high"}
+    data = compile_creatives.normalize(base)
+    ranked_names = [item["name"] for item in compile_creatives.choose_angles(data)[:5]]
+    output = compile_creatives.build_creatives(data)
+    selected_names = [item["hypothesis"]["angle"] for item in output["creative_plans"]]
+    layouts = {item["visual_plan"]["layout"] for item in output["creative_plans"]}
+    required = {"L1 Product Hero", "L11 Editorial Poster", "L12 Detail Crop", "L5 UGC Native Static", "L13 Asymmetric Grid"}
+    assert selected_names == ranked_names
+    assert layouts == required
+    assert output["quality_checks"]["pass"] is True
+
+
+def test_eight_creative_batch_keeps_required_and_additional_layouts():
+    data = compile_creatives.normalize({"product_name":"Geometric Sling Bag","product_category":"sling bag / crossbody bag","product_description":"Product image only.","reference_image":"bag.png","generation_count":8,"variation_strength":"high"})
+    output = compile_creatives.build_creatives(data)
+    layouts = {item["visual_plan"]["layout"] for item in output["creative_plans"]}
+    required = {"L1 Product Hero", "L11 Editorial Poster", "L12 Detail Crop", "L5 UGC Native Static", "L13 Asymmetric Grid"}
+    assert required <= layouts
+    assert "L9 Minimal Editorial" in layouts
+    assert len(layouts) > len(required)
+    assert output["quality_checks"]["pass"] is True

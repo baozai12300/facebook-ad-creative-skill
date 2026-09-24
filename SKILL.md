@@ -149,6 +149,14 @@ The layout must fit the selected angle. Do not use the same scene-style-layout c
 
 Copy is subordinate to the visual concept.
 
+Classify copy before rendering:
+
+1. **Hard claim** — specifications, measurable performance, certifications, protection, exact materials/capacity, comparison, proof, or offer; requires matching evidence.
+2. **Soft benefit** — plausible category-, scene-, audience-, or routine-based language without measurable or guaranteed product facts.
+3. **Creative / lifestyle copy** — expressive editorial language that is not a product fact and does not require evidence.
+
+Evidence Lock applies strictly to hard claims. It must not force soft benefits and creative/lifestyle copy into generic neutral wording.
+
 Lifestyle and UGC headlines must be derived from the product category, selected benefit, angle, and use scene. Do not reuse one generic lifestyle headline across unrelated products or across most of a batch.
 
 For static Meta creatives:
@@ -161,6 +169,8 @@ For static Meta creatives:
 Do not force CTA buttons into every image. Meta's system CTA exists outside the image.
 
 Treat “20% text” only as a visual-density guideline, not a Meta policy rule.
+
+Use layout-driven typography where appropriate: oversized headlines, small captions, vertical micro-text, split hierarchy, numbered non-claim labels, detail captions, and poster-style composition. Functional callouts still require evidence.
 
 When exact text rendering is unreliable for the chosen model, prefer a text-light visual or generate the visual first and add typography in the product editor.
 

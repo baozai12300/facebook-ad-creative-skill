@@ -54,16 +54,19 @@ PLACEMENTS = {
 }
 
 LAYOUT_PROFILES = {
-    "product_hero": ("L1 Product Hero", "center or right-center, 52–66% of canvas height", "upper-left safe zone", "one short support line", "upper-left", "headline → product → material detail"),
-    "benefit_focus": ("L2 Benefit Focus", "right-center, 48–60% of canvas height", "upper-left safe zone", "up to two labels beside, never over, the product", "left and upper-left", "headline → product → benefits"),
-    "problem_solution": ("L3 Problem → Solution Split", "fully inside the brighter solution side, about 48% of canvas height", "top safe zone", "one short phrase per side", "around the divider and product", "problem → product solution → outcome"),
-    "lifestyle_story": ("L4 Lifestyle Story", "in natural use near center-right, visually prominent at 35–45% of frame", "environmental negative space", "none", "around the headline and product", "use action → product → outcome"),
-    "ugc_native": ("L5 UGC Native Static", "in hand or in use near center, recognizable at mobile size", "top safe zone", "none", "behind the headline", "real action → product → headline"),
-    "review_proof": ("L6 Review / Proof Card", "center-right and primary, 50–60% of canvas height", "upper-left safe zone", "one supplied proof card under 25% of canvas", "between product and proof", "product → supplied proof → headline"),
-    "offer_value": ("L7 Offer / Value", "large and central, 55–65% of canvas height", "upper safe zone", "one supplied offer chip smaller than product", "around product and offer", "product → offer → optional CTA"),
-    "comparison": ("L8 Comparison", "dominant on the preferred side of a clean two-region comparison", "top safe zone", "one supplied-fact label per side", "around divider and labels", "old method → product-led method → benefit"),
-    "minimal_editorial": ("L9 Minimal Editorial", "center-lower or right-center, 38–52% of canvas height", "upper negative space", "none", "55–70% of canvas", "product → material detail → optional headline"),
-    "infographic_lite": ("L10 Infographic Lite", "center, 45–55% of canvas height", "upper-center safe zone", "up to two supplied-fact callouts", "between product and labels", "headline → product → supplied facts"),
+    "product_hero": ("L1 Product Hero", "center or right-center, 52–66% of canvas height", "upper-left safe zone", "one short support line", "upper-left", "headline → product → material detail", "oversized editorial headline with a small caption", "asymmetric crop, thin rules, one restrained shape"),
+    "benefit_focus": ("L2 Benefit Focus", "right-center, 48–60% of canvas height", "upper-left safe zone", "up to two labels beside, never over, the product", "left and upper-left", "headline → product → benefits", "bold headline plus compact labels", "structured callout grid; functional labels require evidence"),
+    "problem_solution": ("L3 Problem → Solution Split", "fully inside the brighter solution side, about 48% of canvas height", "top safe zone", "one short phrase per side", "around the divider and product", "problem → product solution → outcome", "contrasting type scale across two regions", "clean split layout, divider rule, opposing texture blocks"),
+    "lifestyle_story": ("L4 Lifestyle Story", "in natural use near center-right, visually prominent at 35–45% of frame", "environmental negative space", "one small lifestyle caption", "around the headline and product", "use action → product → headline", "oversized lifestyle headline with small caption", "poster-style crop, asymmetric text, subtle graphic block"),
+    "ugc_native": ("L5 UGC Native Static", "in hand or in use near center, recognizable at mobile size", "top safe zone", "one tiny context label", "behind the headline", "real action → product → headline", "direct headline with optional vertical micro-label", "native framing with a thin rule or timestamp-like non-claim index"),
+    "review_proof": ("L6 Review / Proof Card", "center-right and primary, 50–60% of canvas height", "upper-left safe zone", "one supplied proof card under 25% of canvas", "between product and proof", "product → supplied proof → headline", "headline plus supplied quote hierarchy", "modular card grid; proof content must be supplied"),
+    "offer_value": ("L7 Offer / Value", "large and central, 55–65% of canvas height", "upper safe zone", "one supplied offer chip smaller than product", "around product and offer", "product → offer → optional CTA", "large offer type plus short headline", "poster composition with one offer block; offer must be supplied"),
+    "comparison": ("L8 Comparison", "dominant on the preferred side of a clean two-region comparison", "top safe zone", "one supplied-fact label per side", "around divider and labels", "old method → product-led method → benefit", "one short label per side", "split grid and thin divider; comparison claims require evidence"),
+    "minimal_editorial": ("L9 Minimal Editorial", "center-lower or right-center, 38–52% of canvas height", "upper negative space", "one small editorial caption", "55–70% of canvas", "headline → product → detail", "oversized sparse type with vertical micro-text", "asymmetric editorial grid, thin rules, generous negative space"),
+    "infographic_lite": ("L10 Infographic Lite", "center, 45–55% of canvas height", "upper-center safe zone", "up to two supplied-fact callouts", "between product and labels", "headline → product → supplied facts", "clear headline with numbered 01/02 labels", "structured grid and leader lines; functional callouts require evidence"),
+    "poster_editorial": ("L11 Editorial Poster", "off-center and large, 48–62% of canvas height", "oversized type zone behind or beside product", "one small caption", "one open corner", "headline → silhouette → caption", "oversized poster type with strong scale contrast", "shapes, texture block, thin rules, asymmetric crop"),
+    "detail_crop": ("L12 Detail Crop", "one product close-up plus one complete product view", "edge-aligned headline zone", "one detail caption", "between crop and full view", "detail → full product → headline", "compact headline with vertical detail label", "split crop, magnified material detail, numbered non-claim marker"),
+    "asymmetric_grid": ("L13 Asymmetric Grid", "anchored in one large grid cell, 42–58% of canvas height", "contrasting grid cell", "one small lifestyle caption", "one deliberately empty cell", "headline → product → scene detail", "bold headline plus small editorial caption", "uneven grid, texture blocks, thin rules, non-claim numeric index"),
 }
 
 VISUAL_DNA = {
@@ -91,10 +94,10 @@ ANGLE_HYPOTHESES = [
 VISUAL_ONLY_HYPOTHESES = [
     ("Premium Product Hero", "clarity", "product_hero", "premium_editorial", "clean studio product hero"),
     ("Minimal Product Clarity", "clarity", "minimal_editorial", "premium_editorial", "refined minimal product study"),
-    ("Lifestyle Context", "lifestyle", "lifestyle_story", "lifestyle_natural", "believable contextual product use"),
+    ("Lifestyle Context", "lifestyle", "poster_editorial", "lifestyle_natural", "believable contextual product use"),
     ("UGC Real Use", "lifestyle", "ugc_native", "ugc_native", "everyday product-in-use snapshot"),
-    ("Product Demonstration", "lifestyle", "lifestyle_story", "lifestyle_natural", "visible handling without performance claims"),
-    ("Travel / Everyday Carry", "lifestyle", "lifestyle_story", "lifestyle_natural", "travel or everyday-carry context"),
+    ("Product Demonstration", "lifestyle", "detail_crop", "lifestyle_natural", "visible handling without performance claims"),
+    ("Travel / Everyday Carry", "lifestyle", "asymmetric_grid", "lifestyle_natural", "travel or everyday-carry context"),
     ("Gift Presentation", "gift", "product_hero", "clean_ecommerce", "neutral gift presentation or unboxing"),
     ("Contextual Product Use", "lifestyle", "lifestyle_story", "clean_ecommerce", "product-led everyday context"),
 ]
@@ -440,7 +443,35 @@ def select_angles(data: Dict[str, Any], count: int) -> List[Dict[str, str]]:
     ranked = choose_angles(data)
     pool_size = {"low": min(2, len(ranked)), "medium": min(max(4, count // 2), len(ranked)), "high": len(ranked)}[data["variation_strength"]]
     pool = ranked[:pool_size]
-    return [pool[index % len(pool)] for index in range(count)]
+    selected = [dict(pool[index % len(pool)]) for index in range(count)]
+    return apply_batch_layout_coverage(selected) if count >= 5 else selected
+
+
+def apply_batch_layout_coverage(angles: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    """Guarantee five structural anchors without changing angle rank or order."""
+    required = ["product_hero", "poster_editorial", "detail_crop", "ugc_native", "asymmetric_grid"]
+    covered_indices = set()
+    present = set()
+    for index, angle in enumerate(angles):
+        layout = angle["layout"]
+        if layout in required and layout not in present:
+            present.add(layout)
+            covered_indices.add(index)
+
+    missing = [layout for layout in required if layout not in present]
+    replaceable = [index for index in range(len(angles)) if index not in covered_indices]
+    style_for_layout = {
+        "product_hero": "premium_editorial",
+        "poster_editorial": "lifestyle_natural",
+        "detail_crop": "lifestyle_natural",
+        "ugc_native": "ugc_native",
+        "asymmetric_grid": "lifestyle_natural",
+    }
+    for layout, index in zip(missing, replaceable):
+        angles[index]["layout"] = layout
+        angles[index]["style"] = style_for_layout[layout]
+        covered_indices.add(index)
+    return angles
 
 
 def benefit_phrase(benefit: str, data: Dict[str, Any]) -> str:
@@ -506,20 +537,114 @@ def lifestyle_headline(data: Dict[str, Any], angle: Dict[str, str], benefit: str
     return " ".join(words[:7]).rstrip(".") + "."
 
 
-def visual_only_headline(data: Dict[str, Any], angle: Dict[str, str]) -> str:
-    product = _short_product_name(data["product_name"])
-    category = " ".join(data["product_category"].title().split()[:3])
-    headlines = {
-        "Premium Product Hero": f"Meet {product}",
-        "Minimal Product Clarity": f"Clean, Modern {category} Design",
-        "Lifestyle Context": "Made for Your Routine",
-        "UGC Real Use": "Designed for Everyday Use",
-        "Product Demonstration": f"See {product} in Daily Use",
-        "Travel / Everyday Carry": f"{product} On the Go",
-        "Gift Presentation": f"A Simple {category} Gift",
-        "Contextual Product Use": "Product-Led Everyday Design",
+def visual_only_copy(data: Dict[str, Any], angle: Dict[str, str], scene: str = "") -> Dict[str, Any]:
+    """Generate expressive non-factual copy when claim evidence is absent."""
+    family = category_family(data)
+    angle_name = angle.get("name")
+    family_lines = {
+        "mobile_accessories": {
+            "Lifestyle Context": "READY FOR EVERYDAY MOVES",
+            "UGC Real Use": "OUT THE DOOR",
+            "Product Demonstration": "MOVE WITH STYLE",
+            "Travel / Everyday Carry": "CITY MODE",
+            "Contextual Product Use": "DAILY CARRY MODE",
+        },
+        "skincare": {
+            "Lifestyle Context": "BUILT AROUND YOUR ROUTINE",
+            "UGC Real Use": "MORNING MODE",
+            "Product Demonstration": "A MOMENT FOR YOU",
+            "Travel / Everyday Carry": "CARE ON THE GO",
+            "Contextual Product Use": "YOUR DAILY RITUAL",
+        },
+        "electronics": {
+            "Lifestyle Context": "BUILT AROUND YOUR SETUP",
+            "UGC Real Use": "DESK MODE",
+            "Product Demonstration": "READY WHEN YOU ARE",
+            "Travel / Everyday Carry": "WORK MODE, ANYWHERE",
+            "Contextual Product Use": "DAILY SETUP ENERGY",
+        },
+        "general": {
+            "Lifestyle Context": "BUILT AROUND YOUR ROUTINE",
+            "UGC Real Use": "READY WHEN YOU ARE",
+            "Product Demonstration": "IN THE MOMENT",
+            "Travel / Everyday Carry": "ON THE GO",
+            "Contextual Product Use": "DAILY ESSENTIAL",
+        },
     }
-    return " ".join(headlines.get(angle.get("name"), f"Meet {product}").split()[:7])
+    fixed = {
+        "Premium Product Hero": "FORM IN FOCUS",
+        "Minimal Product Clarity": "PURE FORM",
+        "Gift Presentation": "READY TO GIVE",
+    }
+    headline = fixed.get(angle_name) or family_lines.get(family, family_lines["general"]).get(angle_name, "READY WHEN YOU ARE")
+    support_by_angle = {
+        "Premium Product Hero": _short_product_name(data["product_name"]),
+        "Minimal Product Clarity": "An everyday object study",
+        "Lifestyle Context": "Commute / weekend / repeat" if "travel" not in scene.lower() else "Pack / move / repeat",
+        "UGC Real Use": "A real-life product moment",
+        "Product Demonstration": "Form / detail / movement",
+        "Travel / Everyday Carry": "From weekday to weekend",
+        "Gift Presentation": "A considered product moment",
+        "Contextual Product Use": "Made part of the moment",
+    }
+    support = support_by_angle.get(angle_name, "")
+    return {"headline": headline, "support": support, "callouts": [], "cta": ""}
+
+
+HARD_CLAIM_PATTERNS = [
+    r"\bwaterproof\b", r"\banti[- ]?theft\b", r"\bdrop[- ]?protection\b",
+    r"\b\d+(?:\.\d+)?\s*[x×]\s*(?:faster|stronger|better)\b",
+    r"\b\d[\d,]*(?:\.\d+)?\s*(?:rpm|w|watts?|db|mah|ml|l|liters?|oz|gb|tb|hours?|%)\b",
+    r"\bip\d{2}\b", r"\bmade (?:from|of) [a-z][a-z -]+\b",
+    r"\b(?:genuine|full-grain|vegan|recycled|organic) (?:leather|cotton|silicone|aluminum|steel|plastic)\b",
+    r"\bcertified\b", r"\bbest[- ]seller\b", r"\bclinically\b",
+]
+
+
+def classify_copy_tier(data: Dict[str, Any], text: str) -> str:
+    if not text.strip():
+        return "none"
+    normalized = _normalized_claim_text(text)
+    evidence = [
+        variant
+        for fact in _claim_fact_pool(data)
+        for variant in (_normalized_claim_text(fact["text"]), _normalized_claim_text(benefit_phrase(fact["text"], data)))
+    ]
+    if any(item and (item in normalized or normalized in item) for item in evidence):
+        return "hard_claim"
+    if any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in HARD_CLAIM_PATTERNS):
+        return "hard_claim"
+    letters = [char for char in text if char.isalpha()]
+    if letters and text == text.upper() and len(text.replace("/", " ").replace(",", " ").split()) <= 5:
+        return "creative_lifestyle"
+    return "soft_benefit"
+
+
+def classify_copy(data: Dict[str, Any], copy: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "headline": classify_copy_tier(data, copy["headline"]),
+        "support": classify_copy_tier(data, copy["support"]),
+        "callouts": [classify_copy_tier(data, item) for item in copy["callouts"]],
+        "cta": classify_copy_tier(data, copy["cta"]),
+    }
+
+
+def unsupported_hard_copy_findings(data: Dict[str, Any], copy: Dict[str, Any]) -> List[str]:
+    evidence = [
+        variant
+        for fact in _claim_fact_pool(data)
+        for variant in (_normalized_claim_text(fact["text"]), _normalized_claim_text(benefit_phrase(fact["text"], data)))
+        if variant
+    ]
+    findings = []
+    texts = [copy["headline"], copy["support"], *copy["callouts"], copy["cta"]]
+    for value in texts:
+        if classify_copy_tier(data, value) != "hard_claim":
+            continue
+        normalized = _normalized_claim_text(value)
+        if not any(item in normalized or normalized in item for item in evidence):
+            findings.append(f"hard claim lacks supplied evidence: {value}")
+    return findings
 
 
 def build_copy(data: Dict[str, Any], angle: Dict[str, str], benefit: str, scene: str = "") -> Dict[str, Any]:
@@ -527,7 +652,7 @@ def build_copy(data: Dict[str, Any], angle: Dict[str, str], benefit: str, scene:
     if mode == "none":
         return {"headline": "", "support": "", "callouts": [], "cta": ""}
     if claim_mode(data) == "visual_only":
-        return {"headline": visual_only_headline(data, angle), "support": "", "callouts": [], "cta": ""}
+        return visual_only_copy(data, angle, scene)
 
     phrase = benefit_phrase(benefit, data)
     layout = angle["layout"]
@@ -721,7 +846,7 @@ def text_instruction(data: Dict[str, Any], copy: Dict[str, Any], headline_zone: 
         parts.append("callouts exactly: " + "; ".join(f'\"{item}\"' for item in copy["callouts"]))
     if copy["cta"]:
         parts.append(f"optional CTA exactly: \"{copy['cta']}\"")
-    parts.append(f"use {data['language']} only, strong contrast, natural line breaks, safe margins, and no extra copy")
+    parts.append(f"use {data['language']} only; legible contrast; safe margins; no extra copy")
     return "; ".join(parts) + "."
 
 
@@ -732,10 +857,11 @@ def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
     return "\n\n".join([
         f"Create a {data['aspect_ratio']} Meta ecommerce ad image for {data['placement'].replace('_', ' ')}.",
         f"PRODUCT: {product_identity_instruction(data)}",
-        f"SCENE: {plan['scene']}. Show {plan['audience_scene_bridge']['visible_behavior']}; use only relevant props subordinate to the product.",
+        f"SCENE: {plan['scene']}; {plan['audience_scene_bridge']['visible_behavior']}. Props stay relevant and secondary.",
         f"PLACEMENT: {plan['placement_instruction']}",
-        f"COMPOSITION: Product {layout['product_position']}. Headline zone: {layout['headline_zone']}. Support zone: {layout['support_zone']}. Keep {layout['negative_space']} uncluttered. Visual flow: {layout['visual_flow']}.",
-        f"LOOK: {dna['lighting']}. {dna['camera_language']}. {dna['background_character']}. {dna['color_mood']}. {dna['material_treatment']}. High commercial realism. {dna['graphic_treatment']}.",
+        f"COMPOSITION: Product {layout['product_position']}; headline {layout['headline_zone']}; support {layout['support_zone']}; keep {layout['negative_space']} uncluttered; flow {layout['visual_flow']}.",
+        f"DESIGN: {layout['typography']}; {layout['graphic_structure']}.",
+        f"LOOK: {dna['lighting']}. {dna['camera_language']}. {dna['background_character']}. {dna['color_mood']}. {dna['material_treatment']}. {dna['graphic_treatment']}.",
         f"TEXT: {text_instruction(data, plan['copy'], layout['headline_zone'])}",
         "AVOID: " + "; ".join(negatives) + ".",
     ])
@@ -777,7 +903,8 @@ def unsupported_claim_findings(data: Dict[str, Any], prompt: str) -> List[str]:
     risky_phrases = [
         "faster", "quiet motor", "lower noise", "temperature control", "smart temperature",
         "heat damage", "battery life", "all hair types", "salon results", "clinically",
-        "waterproof", "drop-proof", "anti-yellowing", "certified", "guarantee",
+        "waterproof", "drop-proof", "drop protection", "anti-theft", "anti theft",
+        "anti-yellowing", "certified", "guarantee",
         "free shipping", "limited time", "best seller", "award winning", "rated",
     ]
     for phrase in risky_phrases:
@@ -809,6 +936,7 @@ def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dic
         findings.append("before/after angle lacks explicit evidence")
     if plan["angle_kind"] in {"problem", "comparison"} and not can_use_comparison_claim(data):
         findings.append("comparison angle lacks supplied product facts")
+    findings.extend(unsupported_hard_copy_findings(data, plan["copy"]))
     if plan["placement_instruction"] not in prompt:
         findings.append("placement safe-zone instruction missing from render prompt")
     if data["text_overlay_mode"] != "none" and not headline_is_natural(plan["copy"]["headline"], plan["angle_kind"]):
@@ -825,7 +953,7 @@ def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dic
         "findings": findings,
         "revised": False,
         "prompt_word_count": word_count,
-        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "copy accuracy", "placement safe-zone compiled", "unsupported claim check", "numeric claim source check", "before/after evidence check", "proof source check", "offer source check", "spec source check", "compatibility claim check", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
+        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "copy tier classification", "hard claim evidence", "creative copy freedom", "placement safe-zone compiled", "unsupported claim check", "numeric claim source check", "before/after evidence check", "proof source check", "offer source check", "spec source check", "compatibility claim check", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
     }
 
 
@@ -846,12 +974,13 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         audience = select_audience_for_angle(data, angle, benefit)
         scene = select_scene_for_hypothesis(data, angle, benefit, audience)
         layout_values = LAYOUT_PROFILES[angle["layout"]]
-        layout = dict(zip(["name", "product_position", "headline_zone", "support_zone", "negative_space", "visual_flow"], layout_values))
+        layout = dict(zip(["name", "product_position", "headline_zone", "support_zone", "negative_space", "visual_flow", "typography", "graphic_structure"], layout_values))
         selected_style = select_visual_style(data, angle, index)
         dna_values = VISUAL_DNA[selected_style]
         dna = dict(zip(["name", "lighting", "camera_language", "background_character", "color_mood", "material_treatment", "graphic_treatment"], dna_values))
         bridge = build_audience_scene_bridge(data, audience, scene, benefit, index)
         copy = build_copy(data, angle, benefit, scene)
+        copy_tiers = classify_copy(data, copy)
         evidence = collect_used_claims(data, angle, benefit, copy)
         plan = {
             "angle_kind": angle["kind"],
@@ -863,6 +992,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
             "layout_profile": layout,
             "visual_dna": dna,
             "copy": copy,
+            "copy_tiers": copy_tiers,
             "used_claims": evidence["used_claims"],
             "evidence_source": evidence["evidence_source"],
             "negative_constraints": negatives,
@@ -897,7 +1027,8 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                 "layout": layout["name"], "product_position": layout["product_position"],
                 "headline_zone": layout["headline_zone"], "support_zone": layout["support_zone"],
                 "negative_space": layout["negative_space"], "visual_flow": layout["visual_flow"],
-                "text_mode": data["text_overlay_mode"], "copy": plan["copy"],
+                "typography": layout["typography"], "graphic_structure": layout["graphic_structure"],
+                "text_mode": data["text_overlay_mode"], "copy": plan["copy"], "copy_tiers": copy_tiers,
             },
             "render_prompt": prompt,
             "model_prompts": {
@@ -910,6 +1041,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                 "claim_mode": claim_mode(data),
                 "used_claims": evidence["used_claims"],
                 "evidence_source": evidence["evidence_source"],
+                "copy_tiers": copy_tiers,
             },
             "quality_check": quality,
         })

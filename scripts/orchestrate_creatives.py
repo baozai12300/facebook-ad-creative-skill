@@ -149,6 +149,8 @@ def create_creative_preview_plans(product_analysis: Dict[str, Any], campaign_set
                 "camera": visual["visual_dna"]["camera_language"],
                 "lighting": visual["visual_dna"]["lighting"],
                 "visual_dna": visual["visual_dna"]["name"],
+                "typography": visual.get("typography", ""),
+                "graphic_structure": visual.get("graphic_structure", ""),
             },
             "copy": {"headline": copy_plan["headline"], "support": copy_plan["support"]},
             "placement": {
@@ -159,6 +161,7 @@ def create_creative_preview_plans(product_analysis: Dict[str, Any], campaign_set
             "evidence": {
                 "claims_used": item["evidence_lock"]["used_claims"],
                 "sources": item["evidence_lock"]["evidence_source"],
+                "copy_tiers": item["evidence_lock"].get("copy_tiers", {}),
             },
             "render_prompt": item["render_prompt"],
             "quality": item["quality_check"],

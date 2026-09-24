@@ -6,6 +6,10 @@ The layout engine converts the selected creative angle into explicit image geome
 
 One layout should make the dominant message obvious in under one second on a mobile feed.
 
+Layouts should create an art-directed advertising system, not merely place a product over a background. Depending on angle and placement, use editorial typography, multi-level hierarchy, oversized or vertical type, detail crops, asymmetric grids, graphic shapes, thin rules, texture blocks, poster composition, split regions, and numbered non-claim labels such as `01` / `02`.
+
+Decorative numbers are structural labels only. Any number that communicates capacity, performance, quantity, rating, price, duration, or specification remains a hard claim and requires evidence.
+
 Every layout definition must specify:
 
 - `product_anchor`: where the product sits
@@ -15,6 +19,8 @@ Every layout definition must specify:
 - `negative_space`: where the image must stay quiet
 - `visual_flow`: first → second → third focal point
 - `safe_margin`: minimum edge clearance
+- `typography`: scale, direction, and hierarchy
+- `graphic_structure`: grid, crop, rules, shapes, blocks, or callout system
 
 ## Layout Patterns
 
@@ -104,6 +110,25 @@ Best for: technical or feature-heavy products.
 - Labels must describe supplied facts only
 - Avoid dense specification sheets
 
+### L11 — Editorial Poster
+
+- Oversized headline and strong scale contrast
+- Product can overlap decorative typography without losing silhouette clarity
+- Use asymmetric crops, thin rules, shape fields, and one small caption
+- Keep all wording soft-benefit, creative/lifestyle, or evidence-backed
+
+### L12 — Detail Crop
+
+- Pair one close material/detail crop with one complete product view
+- Use a vertical micro-label or numbered non-claim marker
+- Detail captions may describe visible form only; functional captions require evidence
+
+### L13 — Asymmetric Grid
+
+- Use uneven grid cells, one deliberate empty cell, and a strong off-center anchor
+- Combine an oversized headline with one small caption
+- Texture blocks and graphic shapes must support hierarchy rather than decorate randomly
+
 ## Layout Selection Rules
 
 Choose layout from the angle, not randomly:
@@ -116,6 +141,8 @@ Choose layout from the angle, not randomly:
 - Social proof → L6
 - Offer / bundle → L7
 - Comparison / objection → L8
+- Editorial/lifestyle identity → L11 or L13
+- Product form/detail demonstration → L12
 
 If the selected layout fights the angle, change the layout before writing the prompt.
 

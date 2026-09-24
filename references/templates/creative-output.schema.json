@@ -35,7 +35,7 @@
           },
           "visual_plan": {
             "type": "object",
-            "required": ["scene", "audience_scene_bridge", "visual_dna", "layout", "product_position", "headline_zone", "support_zone", "negative_space", "visual_flow", "text_mode", "copy"],
+            "required": ["scene", "audience_scene_bridge", "visual_dna", "layout", "product_position", "headline_zone", "support_zone", "negative_space", "visual_flow", "typography", "graphic_structure", "text_mode", "copy"],
             "properties": {
               "scene": { "type": "string" },
               "layout": { "type": "string" },
@@ -44,6 +44,8 @@
               "support_zone": { "type": "string" },
               "negative_space": { "type": "string" },
               "visual_flow": { "type": "string" },
+              "typography": { "type": "string" },
+              "graphic_structure": { "type": "string" },
               "text_mode": { "type": "string" },
               "audience_scene_bridge": {
                 "type": "object",
@@ -76,11 +78,12 @@
           "negative_constraints": { "type": "array", "items": { "type": "string" } },
           "evidence_lock": {
             "type": "object",
-            "required": ["claim_mode", "used_claims", "evidence_source"],
+            "required": ["claim_mode", "used_claims", "evidence_source", "copy_tiers"],
             "properties": {
               "claim_mode": { "enum": ["visual_only", "evidence_backed"] },
               "used_claims": { "type": "array", "items": { "type": "string" } },
-              "evidence_source": { "type": "array", "items": { "type": "string" } }
+              "evidence_source": { "type": "array", "items": { "type": "string" } },
+              "copy_tiers": { "type": "object" }
             }
           },
           "quality_check": {
