@@ -64,7 +64,7 @@ LAYOUT_PROFILES = {
     "comparison": ("L8 Comparison", "dominant on the preferred side of a clean two-region comparison", "top safe zone", "one supplied-fact label per side", "around divider and labels", "old method → product-led method → benefit", "one short label per side", "split grid and thin divider; comparison claims require evidence"),
     "minimal_editorial": ("L9 Minimal Editorial", "center-lower or right-center, 38–52% of canvas height", "upper negative space", "one small editorial caption", "55–70% of canvas", "headline → product → detail", "oversized sparse type with vertical micro-text", "asymmetric editorial grid, thin rules, generous negative space"),
     "infographic_lite": ("L10 Infographic Lite", "center, 45–55% of canvas height", "upper-center safe zone", "up to two supplied-fact callouts", "between product and labels", "headline → product → supplied facts", "clear headline with numbered 01/02 labels", "structured grid and leader lines; functional callouts require evidence"),
-    "poster_editorial": ("L11 Editorial Poster", "off-center and large, 48–62% of canvas height", "oversized type zone behind or beside product", "one small caption", "one open corner", "headline → silhouette → caption", "oversized poster type with strong scale contrast", "graphic shapes, texture block, thin rules, asymmetric crop"),
+    "poster_editorial": ("L11 Editorial Poster", "off-center and large, 48–62% of canvas height", "oversized type zone behind or beside product", "one small caption", "one open corner", "headline → silhouette → caption", "oversized poster type with strong scale contrast", "shapes, texture block, thin rules, asymmetric crop"),
     "detail_crop": ("L12 Detail Crop", "one product close-up plus one complete product view", "edge-aligned headline zone", "one detail caption", "between crop and full view", "detail → full product → headline", "compact headline with vertical detail label", "split crop, magnified material detail, numbered non-claim marker"),
     "asymmetric_grid": ("L13 Asymmetric Grid", "anchored in one large grid cell, 42–58% of canvas height", "contrasting grid cell", "one small lifestyle caption", "one deliberately empty cell", "headline → product → scene detail", "bold headline plus small editorial caption", "uneven grid, texture blocks, thin rules, non-claim numeric index"),
 }
@@ -443,7 +443,35 @@ def select_angles(data: Dict[str, Any], count: int) -> List[Dict[str, str]]:
     ranked = choose_angles(data)
     pool_size = {"low": min(2, len(ranked)), "medium": min(max(4, count // 2), len(ranked)), "high": len(ranked)}[data["variation_strength"]]
     pool = ranked[:pool_size]
-    return [pool[index % len(pool)] for index in range(count)]
+    selected = [dict(pool[index % len(pool)]) for index in range(count)]
+    return apply_batch_layout_coverage(selected) if count >= 5 else selected
+
+
+def apply_batch_layout_coverage(angles: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    """Guarantee five structural anchors without changing angle rank or order."""
+    required = ["product_hero", "poster_editorial", "detail_crop", "ugc_native", "asymmetric_grid"]
+    covered_indices = set()
+    present = set()
+    for index, angle in enumerate(angles):
+        layout = angle["layout"]
+        if layout in required and layout not in present:
+            present.add(layout)
+            covered_indices.add(index)
+
+    missing = [layout for layout in required if layout not in present]
+    replaceable = [index for index in range(len(angles)) if index not in covered_indices]
+    style_for_layout = {
+        "product_hero": "premium_editorial",
+        "poster_editorial": "lifestyle_natural",
+        "detail_crop": "lifestyle_natural",
+        "ugc_native": "ugc_native",
+        "asymmetric_grid": "lifestyle_natural",
+    }
+    for layout, index in zip(missing, replaceable):
+        angles[index]["layout"] = layout
+        angles[index]["style"] = style_for_layout[layout]
+        covered_indices.add(index)
+    return angles
 
 
 def benefit_phrase(benefit: str, data: Dict[str, Any]) -> str:

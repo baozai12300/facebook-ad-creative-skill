@@ -337,3 +337,27 @@ def test_visual_only_batch_uses_art_directed_layouts_and_copy_hierarchy():
     assert all("DESIGN:" in item["render_prompt"] for item in output["creative_plans"])
     assert all(item["evidence_lock"]["used_claims"] == [] for item in output["creative_plans"])
     assert output["quality_checks"]["pass"] is True
+
+
+def test_five_creative_batch_guarantees_structural_layout_coverage():
+    base = {"product_name":"Geometric Sling Bag","product_category":"sling bag / crossbody bag","product_description":"Product image only.","reference_image":"bag.png","reference_image_visual_facts":["black and gray geometric exterior","single shoulder strap","front zipper sections","compact sling-bag form"],"generation_count":5,"variation_strength":"high"}
+    data = compile_creatives.normalize(base)
+    ranked_names = [item["name"] for item in compile_creatives.choose_angles(data)[:5]]
+    output = compile_creatives.build_creatives(data)
+    selected_names = [item["hypothesis"]["angle"] for item in output["creative_plans"]]
+    layouts = {item["visual_plan"]["layout"] for item in output["creative_plans"]}
+    required = {"L1 Product Hero", "L11 Editorial Poster", "L12 Detail Crop", "L5 UGC Native Static", "L13 Asymmetric Grid"}
+    assert selected_names == ranked_names
+    assert layouts == required
+    assert output["quality_checks"]["pass"] is True
+
+
+def test_eight_creative_batch_keeps_required_and_additional_layouts():
+    data = compile_creatives.normalize({"product_name":"Geometric Sling Bag","product_category":"sling bag / crossbody bag","product_description":"Product image only.","reference_image":"bag.png","generation_count":8,"variation_strength":"high"})
+    output = compile_creatives.build_creatives(data)
+    layouts = {item["visual_plan"]["layout"] for item in output["creative_plans"]}
+    required = {"L1 Product Hero", "L11 Editorial Poster", "L12 Detail Crop", "L5 UGC Native Static", "L13 Asymmetric Grid"}
+    assert required <= layouts
+    assert "L9 Minimal Editorial" in layouts
+    assert len(layouts) > len(required)
+    assert output["quality_checks"]["pass"] is True
