@@ -5,7 +5,18 @@ description: Generate structured Meta/Facebook ecommerce ad creatives using prod
 
 # Facebook / Meta Ad Creative Skill v2
 
-Use this skill for Facebook / Instagram / Meta ecommerce ad images, ASC creative testing, product-led ad concepts, UGC-style static creatives, feed ads, story/reels stills, and batch creative generation for GPT Image 2 / Nano Banana or another image model.
+Use this skill for Facebook / Instagram / Meta ecommerce ad preview planning, ASC creative testing, product-led concepts, UGC-style static concepts, and placement-aware render-prompt compilation. The application chooses vision and image-generation providers.
+
+## Orchestration Boundary
+
+Read `references/engines/orchestration-pipeline.md` when integrating the Skill into an application.
+
+- Application input: 1–8 product images and user product information.
+- Application responsibility: call any configured vision-capable model, normalize its result through a Vision Adapter, manage preview UI and approval state, and call the selected image provider.
+- Skill input: normalized `ProductAnalysis`, campaign settings, target market, and user-supplied product facts.
+- Skill output: `CreativePreviewPlan[]` in `draft` status.
+- The Skill does not know which vision provider produced ProductAnalysis and does not call an image-generation model.
+- Compile image-provider payloads only after explicit user selection/approval.
 
 ## Core Principle
 
@@ -25,6 +36,12 @@ Generate ads that are visibly different in concept, not merely different backgro
 Do not claim guaranteed performance, approval, CTR, ROAS, or conversion lift.
 
 ## Mandatory Workflow
+
+### Step 0 — ProductAnalysis Input
+
+Receive normalized `ProductAnalysis` conforming to `references/templates/product-analysis.schema.json`. Do not bind this stage to a named model or provider. The application may use any multimodal model and provider-specific adapter.
+
+Use visual identity and protected identity for fidelity; user-supplied facts for Evidence Lock; possible scenes and inferred context for creative context only. Unknowns and conflicts never become claims.
 
 ### Step 1 — Product Truth
 
@@ -182,6 +199,10 @@ Read `references/engines/quality-gate.md`.
 
 Reject and revise any creative that fails product fidelity, one-glance clarity, product prominence, placement safety, typography legibility, claim accuracy, or batch diversity.
 
+### Preview + Approval Boundary
+
+Return the approved-quality concepts as `CreativePreviewPlan[]`, but keep their initial status `draft`. The frontend may let the user select, edit, regenerate, or delete plans. Only the user's selected plans become `approved`; only approved plans may be converted into provider-neutral render payloads. Do not generate images during preview compilation.
+
 ## Product Fidelity — MUST
 
 When a reference product image exists:
@@ -193,7 +214,9 @@ When a reference product image exists:
 
 For multi-image batches, describe the product identity consistently across every prompt.
 
-## Model Routing Guidance
+## Application-Owned Model Routing Guidance
+
+These are examples for the application router, not Skill dependencies.
 
 ### GPT Image 2
 
@@ -214,34 +237,31 @@ Do not make the Skill dependent on one model name. The application may route to 
 
 ## Output Schema
 
-For each creative, return both a planning object and a compact render prompt:
+For each creative, return a draft preview plan and a compact render prompt:
 
 ```json
 {
   "creative_id": "C01",
-  "hypothesis": {
+  "title": "Problem → Solution",
+  "status": "draft",
+  "strategy": {
     "audience": "...",
-    "awareness_stage": "cold",
-    "objective": "purchase",
-    "angle": "Problem → Solution"
+    "angle": "Problem → Solution",
+    "message": "..."
   },
-  "visual_plan": {
+  "visual": {
     "scene": "...",
-    "style": "...",
+    "product_action": "...",
     "layout": "...",
-    "product_position": "...",
-    "text_mode": "light",
-    "copy": {
-      "headline": "...",
-      "support": ""
-    }
+    "camera": "...",
+    "lighting": "...",
+    "visual_dna": "..."
   },
+  "copy": { "headline": "...", "support": "" },
+  "placement": { "platform": "Meta", "placement": "Feed", "ratio": "4:5" },
+  "evidence": { "claims_used": [], "sources": [] },
   "render_prompt": "...",
-  "negative_constraints": [],
-  "quality_check": {
-    "pass": true,
-    "notes": []
-  }
+  "quality": { "pass": true, "findings": [] }
 }
 ```
 
@@ -255,9 +275,10 @@ For each creative, return both a planning object and a compact render prompt:
 - Meta placement rules: `references/engines/meta-placement-engine.md`
 - Render prompt compiler: `references/engines/prompt-compiler.md`
 - Evidence lock and claim safety: `references/engines/evidence-lock.md`
+- Provider-agnostic orchestration: `references/engines/orchestration-pipeline.md`
 - Batch diversity: `references/engines/variation-strategy.md`
 - Quality gate: `references/engines/quality-gate.md`
-- Schemas: `references/templates/input.schema.json`, `references/templates/creative-output.schema.json`
+- Schemas: `references/templates/product-analysis.schema.json`, `references/templates/creative-preview-plan.schema.json`, `references/templates/render-payload.schema.json`
 
 ## Default Assumptions
 

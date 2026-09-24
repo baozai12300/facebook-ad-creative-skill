@@ -16,15 +16,15 @@ from typing import Any, Dict, List
 
 
 DEFAULT_NEGATIVES = [
-    "avoid cluttered composition",
-    "avoid tiny product placement",
-    "avoid excessive text overlay",
-    "avoid unreadable typography",
-    "avoid unrealistic hands, faces, or anatomy",
-    "avoid over-processed AI look",
-    "avoid unrelated background objects",
-    "avoid repeating the same template across the batch",
-    "avoid unsupported claims, specifications, proof, offers, and transformations",
+    "no cluttered composition",
+    "no tiny product",
+    "no excessive text",
+    "no unreadable typography",
+    "no unrealistic anatomy",
+    "no over-processed AI look",
+    "no unrelated props",
+    "no repeated batch template",
+    "no unsupported claims, specs, proof, offers, or transformations",
 ]
 
 CATEGORY_AUDIENCES = {
@@ -617,7 +617,10 @@ def select_scene_for_hypothesis(data: Dict[str, Any], angle: Dict[str, str], ben
     text = f"{angle['name']} {angle['kind']} {benefit} {audience}".lower()
     if data["scene_preferences"]:
         terms = set(text.replace("→", " ").replace("/", " ").split())
-        return max(data["scene_preferences"], key=lambda scene: sum(term in scene.lower() for term in terms))
+        ranked_scenes = [(sum(term in scene.lower() for term in terms), scene) for scene in data["scene_preferences"]]
+        best_score, best_scene = max(ranked_scenes)
+        if best_score > 0:
+            return best_scene
 
     family = category_family(data)
     if family == "mobile_accessories":
@@ -701,7 +704,7 @@ def select_visual_style(data: Dict[str, Any], angle: Dict[str, str], index: int)
 def product_identity_instruction(data: Dict[str, Any]) -> str:
     locked = ", ".join(data["product_identity_constraints"]) or "silhouette, proportions, colorway, materials, packaging, logo position, controls, and distinctive details"
     visible = ""
-    if data["reference_image_visual_facts"]:
+    if data["reference_image_visual_facts"] and not data["product_identity_constraints"]:
         visible = " Visible reference facts only: " + ", ".join(data["reference_image_visual_facts"]) + "."
     if data["reference_image"]:
         return f"Preserve the supplied product reference exactly—lock {locked}. Do not redesign the SKU.{visible}"
