@@ -117,3 +117,85 @@ def test_story_defaults_to_vertical_placement_geometry():
     assert data["aspect_ratio"] == "9:16"
     assert creative["placement_plan"]["canvas"] == "1080x1920"
     assert "top and bottom" in creative["placement_plan"]["adaptation_notes"]
+
+
+def test_phone_case_uses_specific_audiences_and_real_scenes():
+    data = compile_creatives.normalize({"product_name":"MagSafe Clear Case","product_category":"phone case","product_description":"A slim protective phone case.","benefits":["everyday device protection"],"generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    audiences = {item["hypothesis"]["audience"] for item in output["creative_plans"]}
+    scenes = " ".join(item["visual_plan"]["scene"] for item in output["creative_plans"])
+    assert "device protection shoppers" in audiences
+    assert "MagSafe users" in audiences
+    assert any(cue in scenes for cue in ("commute", "desk", "mirror selfie", "wireless charging"))
+    assert "broad ecommerce shoppers" not in audiences
+
+
+def test_usb_c_hub_copy_is_short_and_natural():
+    base = {"product_name":"USB-C Hub","product_category":"electronics","product_description":"A compact multi-port desk hub."}
+    assert compile_creatives.benefit_phrase("reduce cable switching", base) == "Fewer Cable Swaps"
+    assert compile_creatives.benefit_phrase("connect more desk accessories", base) == "More Ports. One Hub."
+    data = compile_creatives.normalize({**base,"benefits":["reduce cable switching","connect more desk accessories"],"generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    for item in output["creative_plans"]:
+        headline = item["visual_plan"]["copy"]["headline"]
+        assert "A simpler way to get" not in headline
+        assert "Make connect" not in headline
+        assert item["quality_check"]["pass"] is True
+
+
+def test_all_placement_safe_zones_are_compiled_into_prompt():
+    expected = {
+        "feed": ("center 80%", "do not place key elements against an edge"),
+        "story": ("middle 70%", "top and bottom interface zones"),
+        "reels": ("upper-middle", "bottom region visually quiet"),
+        "carousel": ("native 1:1", "never crop a Feed version"),
+    }
+    for placement, phrases in expected.items():
+        data = compile_creatives.normalize({"product_name":"Case","product_category":"phone case","product_description":"A slim protective case.","placement":placement})
+        creative = compile_creatives.build_creatives(data)["creative_plans"][0]
+        assert all(phrase in creative["render_prompt"] for phrase in phrases)
+        assert creative["quality_check"]["pass"] is True
+
+
+def test_awareness_stage_changes_ranked_angle_priorities():
+    base = {"product_name":"USB-C Hub","product_category":"electronics","product_description":"A compact desk hub.","benefits":["reduce cable switching"],"social_proof":"A supplied verified buyer quote","offer_info":"Save 10%"}
+    cold = [item["name"] for item in compile_creatives.choose_angles(compile_creatives.normalize({**base,"awareness_stage":"cold"}))[:5]]
+    warm = [item["name"] for item in compile_creatives.choose_angles(compile_creatives.normalize({**base,"awareness_stage":"warm"}))[:5]]
+    hot = [item["name"] for item in compile_creatives.choose_angles(compile_creatives.normalize({**base,"awareness_stage":"hot"}))[:5]]
+    assert "Problem → Solution" in cold and "Product Demonstration" in cold
+    assert warm[0] == "Supplied Social Proof" and "Objection Handling" in warm
+    assert hot[0] == "Supplied Offer / Value" and "Minimal Product Clarity" in hot
+
+
+def test_price_positioning_and_style_preferences_affect_decisions():
+    base = {"product_name":"Serum","product_category":"skincare","product_description":"A lightweight daily serum.","benefits":["hydrated finish"]}
+    premium = compile_creatives.normalize({**base,"price_positioning":"premium","visual_style_preference":["premium editorial"]})
+    budget = compile_creatives.normalize({**base,"price_positioning":"budget"})
+    premium_angles = [item["name"] for item in compile_creatives.choose_angles(premium)[:2]]
+    budget_angles = [item["name"] for item in compile_creatives.choose_angles(budget)[:2]]
+    assert premium_angles == ["Premium Product Hero", "Minimal Product Clarity"]
+    assert budget_angles[0] == "Feature → Benefit"
+    assert compile_creatives.build_creatives(premium)["creative_plans"][0]["visual_plan"]["visual_dna"]["name"] == "Premium Editorial"
+
+
+def test_variation_strength_controls_ranked_pool_width():
+    base = {"product_name":"Serum","product_category":"skincare","product_description":"A lightweight serum.","benefits":["hydrated finish"],"generation_count":8}
+    low = compile_creatives.build_creatives(compile_creatives.normalize({**base,"variation_strength":"low"}))
+    high = compile_creatives.build_creatives(compile_creatives.normalize({**base,"variation_strength":"high"}))
+    assert low["quality_checks"]["distinct_angles"] == 2
+    assert high["quality_checks"]["distinct_angles"] >= 6
+    assert low["quality_checks"]["pass"] is True
+    assert high["quality_checks"]["pass"] is True
+
+
+def test_copy_density_follows_layout_and_evidence():
+    data = compile_creatives.normalize({"product_name":"Serum","product_category":"skincare","product_description":"A full description that must not be copied into every standard creative.","benefits":["hydrated finish"],"key_features":["10% vitamin C","non-sticky texture"],"text_overlay_mode":"standard","offer_info":"Free shipping over $35","social_proof":"Lightweight and easy to use"})
+    angles = {item["kind"]: item for item in compile_creatives.choose_angles(data)}
+    lifestyle = compile_creatives.build_copy(data, {"kind":"lifestyle","layout":"lifestyle_story"}, "hydrated finish")
+    benefit = compile_creatives.build_copy(data, {"kind":"benefit","layout":"benefit_focus"}, "hydrated finish")
+    offer = compile_creatives.build_copy(data, angles["offer"], "hydrated finish")
+    proof = compile_creatives.build_copy(data, angles["proof"], "hydrated finish")
+    assert lifestyle["support"] == "" and lifestyle["callouts"] == []
+    assert len(benefit["callouts"]) == 2 and data["product_description"] not in benefit.values()
+    assert offer["support"] == data["offer_info"]
+    assert proof["headline"] == data["social_proof"] and proof["support"] == ""

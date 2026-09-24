@@ -75,6 +75,8 @@ Read `references/engines/angle-engine.md`.
 
 Select an angle because it fits the product + objective + awareness stage. Do not simply cycle angles in list order.
 
+When compiling a batch, rank eligible angles using product/category, campaign goal, awareness stage, supplied benefits, price positioning, and supplied offer/proof evidence. `variation_strength` controls how broadly to sample the ranked pool. Offer and proof angles remain ineligible without user-supplied evidence.
+
 Preferred Meta ecommerce angle families:
 
 - Problem → Solution

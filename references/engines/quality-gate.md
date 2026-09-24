@@ -70,6 +70,7 @@ Pass only if:
 - critical content is inside safe composition zones
 - 9:16 concepts keep key information away from high-risk top/bottom UI areas
 - one master creative is not naively cropped across every ratio
+- the placement safe-zone and recomposition instruction is present in the final render prompt, not only in planning metadata
 
 ### 8. Realism / Commercial Finish
 

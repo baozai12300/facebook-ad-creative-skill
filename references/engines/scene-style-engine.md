@@ -20,6 +20,7 @@ Useful scene families:
 - organized flat lay
 - before / after or old-way / new-way split when truthful
 - UGC-style everyday snapshot
+- mobile-accessory moments such as commute, desk, mirror selfie, cafe, car mount, wireless charging, travel, and everyday carry
 
 ## Visual DNA Fields
 

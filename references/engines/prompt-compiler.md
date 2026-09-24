@@ -23,10 +23,11 @@ Use this order:
 1. Output type + aspect ratio
 2. Product identity / fidelity
 3. Scene + action
-4. Composition geometry
-5. Lighting / camera / visual style
-6. Exact text, only if needed
-7. Negative constraints
+4. Placement safe-zone and native recomposition rule
+5. Composition geometry
+6. Lighting / camera / visual style
+7. Exact text, only if needed
+8. Negative constraints
 
 ## Compact Template
 
