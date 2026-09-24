@@ -40,6 +40,8 @@ Extract and lock:
 
 Never invent product functions, ratings, discounts, reviews, certifications, ingredients, prices, or claims.
 
+Read `references/engines/evidence-lock.md`. Build copy only from supplied or verified evidence. Visual observations may describe visible form only; inferred context may guide scene and styling but never become a product claim. When no claim evidence exists, use visual-only mode and neutral copy.
+
 ### Step 2 — Campaign Intent
 
 Determine:
@@ -252,6 +254,7 @@ For each creative, return both a planning object and a compact render prompt:
 - Layout / composition: `references/engines/layout-engine.md`
 - Meta placement rules: `references/engines/meta-placement-engine.md`
 - Render prompt compiler: `references/engines/prompt-compiler.md`
+- Evidence lock and claim safety: `references/engines/evidence-lock.md`
 - Batch diversity: `references/engines/variation-strategy.md`
 - Quality gate: `references/engines/quality-gate.md`
 - Schemas: `references/templates/input.schema.json`, `references/templates/creative-output.schema.json`

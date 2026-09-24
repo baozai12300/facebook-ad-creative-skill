@@ -11,7 +11,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "creative_id", "hypothesis", "placement_plan", "visual_plan", "render_prompt", "model_prompts", "negative_constraints", "quality_check"],
+        "required": ["id", "creative_id", "hypothesis", "placement_plan", "visual_plan", "render_prompt", "model_prompts", "negative_constraints", "evidence_lock", "quality_check"],
         "properties": {
           "id": { "type": "string" },
           "creative_id": { "type": "string" },
@@ -74,6 +74,15 @@
             }
           },
           "negative_constraints": { "type": "array", "items": { "type": "string" } },
+          "evidence_lock": {
+            "type": "object",
+            "required": ["claim_mode", "used_claims", "evidence_source"],
+            "properties": {
+              "claim_mode": { "enum": ["visual_only", "evidence_backed"] },
+              "used_claims": { "type": "array", "items": { "type": "string" } },
+              "evidence_source": { "type": "array", "items": { "type": "string" } }
+            }
+          },
           "quality_check": {
             "type": "object",
             "required": ["pass", "findings", "revised", "prompt_word_count", "checks"]

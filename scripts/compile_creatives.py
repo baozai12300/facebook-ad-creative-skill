@@ -9,6 +9,7 @@ to give agents and humans a stable prompt-planning layer before image creation.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
@@ -23,6 +24,7 @@ DEFAULT_NEGATIVES = [
     "avoid over-processed AI look",
     "avoid unrelated background objects",
     "avoid repeating the same template across the batch",
+    "avoid unsupported claims, specifications, proof, offers, and transformations",
 ]
 
 CATEGORY_AUDIENCES = {
@@ -86,6 +88,17 @@ ANGLE_HYPOTHESES = [
     ("Infographic Feature", "benefit", "infographic_lite", "benefit_callout", "clean product hero with supplied feature evidence"),
 ]
 
+VISUAL_ONLY_HYPOTHESES = [
+    ("Premium Product Hero", "clarity", "product_hero", "premium_editorial", "clean studio product hero"),
+    ("Minimal Product Clarity", "clarity", "minimal_editorial", "premium_editorial", "refined minimal product study"),
+    ("Lifestyle Context", "lifestyle", "lifestyle_story", "lifestyle_natural", "believable contextual product use"),
+    ("UGC Real Use", "lifestyle", "ugc_native", "ugc_native", "everyday product-in-use snapshot"),
+    ("Product Demonstration", "lifestyle", "lifestyle_story", "lifestyle_natural", "visible handling without performance claims"),
+    ("Travel / Everyday Carry", "lifestyle", "lifestyle_story", "lifestyle_natural", "travel or everyday-carry context"),
+    ("Gift Presentation", "gift", "product_hero", "clean_ecommerce", "neutral gift presentation or unboxing"),
+    ("Contextual Product Use", "lifestyle", "lifestyle_story", "clean_ecommerce", "product-led everyday context"),
+]
+
 
 def load_input(path: Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
@@ -124,6 +137,12 @@ def normalize(data: Dict[str, Any]) -> Dict[str, Any]:
         "cta_mode": "soft",
         "offer_info": "",
         "social_proof": "",
+        "verified_facts": [],
+        "supplied_specs": [],
+        "reference_image_visual_facts": [],
+        "inferred_context": [],
+        "before_after_evidence": [],
+        "verified_result_claims": [],
         "seasonality": "",
         "compliance_notes": "",
         "competitor_style_notes": "",
@@ -136,6 +155,8 @@ def normalize(data: Dict[str, Any]) -> Dict[str, Any]:
         "key_features", "benefits", "target_audiences", "visual_style_preference",
         "banned_elements", "interests", "scene_preferences", "angle_preferences",
         "product_identity_constraints",
+        "verified_facts", "supplied_specs", "reference_image_visual_facts",
+        "inferred_context", "before_after_evidence", "verified_result_claims",
     ]
     for key in list_fields:
         value = normalized[key]
@@ -175,6 +196,59 @@ def infer_audiences(data: Dict[str, Any]) -> List[str]:
     return ["broad ecommerce shoppers", "problem-aware consumers", "gift buyers"]
 
 
+def can_use_offer(data: Dict[str, Any]) -> bool:
+    return bool(data["offer_info"].strip())
+
+
+def can_use_social_proof(data: Dict[str, Any]) -> bool:
+    return bool(data["social_proof"].strip())
+
+
+def can_use_numeric_spec(data: Dict[str, Any]) -> bool:
+    return bool(data["supplied_specs"] or any(re.search(r"\d", fact) for fact in data["verified_facts"]))
+
+
+def can_use_before_after(data: Dict[str, Any]) -> bool:
+    return bool(data["before_after_evidence"] or data["verified_result_claims"])
+
+
+def can_use_comparison_claim(data: Dict[str, Any]) -> bool:
+    return bool(data["verified_facts"] or data["key_features"] or data["benefits"] or data["supplied_specs"] or data["verified_result_claims"])
+
+
+def claim_mode(data: Dict[str, Any]) -> str:
+    supplied = (
+        data["verified_facts"] or data["key_features"] or data["benefits"] or data["supplied_specs"]
+        or data["verified_result_claims"] or data["offer_info"] or data["social_proof"]
+        or data["before_after_evidence"]
+    )
+    return "evidence_backed" if supplied else "visual_only"
+
+
+def build_claim_safe_fact_pool(data: Dict[str, Any]) -> List[Dict[str, str]]:
+    pool: List[Dict[str, str]] = []
+    sources = [
+        ("verified_facts", data["verified_facts"]),
+        ("supplied_features", data["key_features"]),
+        ("supplied_benefits", data["benefits"]),
+        ("supplied_specs", data["supplied_specs"]),
+        ("verified_result_claims", data["verified_result_claims"]),
+        ("reference_image_visual_facts", data["reference_image_visual_facts"]),
+    ]
+    for source, values in sources:
+        pool.extend({"text": value.strip(), "source": source} for value in values if value.strip())
+    if can_use_offer(data):
+        pool.append({"text": data["offer_info"].strip(), "source": "supplied_offer"})
+    if can_use_social_proof(data):
+        pool.append({"text": data["social_proof"].strip(), "source": "supplied_social_proof"})
+    pool.extend({"text": value.strip(), "source": "before_after_evidence"} for value in data["before_after_evidence"] if value.strip())
+    return pool
+
+
+def _claim_fact_pool(data: Dict[str, Any]) -> List[Dict[str, str]]:
+    return [fact for fact in build_claim_safe_fact_pool(data) if fact["source"] != "reference_image_visual_facts"]
+
+
 def category_family(data: Dict[str, Any]) -> str:
     category = data["product_category"].lower()
     if any(alias in category for alias in ("phone case", "mobile accessories", "smartphone accessories", "phone accessories", "iphone case", "magsafe")):
@@ -187,8 +261,10 @@ def category_family(data: Dict[str, Any]) -> str:
 
 
 def select_benefit_for_angle(data: Dict[str, Any], angle: Dict[str, str]) -> str:
-    benefits = data["benefits"] or data["key_features"] or [data["product_description"]]
-    feature_pool = data["key_features"] or benefits
+    benefits = data["benefits"] or data["verified_result_claims"] or data["key_features"] or data["verified_facts"] or data["supplied_specs"]
+    if not benefits:
+        return ""
+    feature_pool = data["key_features"] or data["supplied_specs"] or benefits
     if angle["layout"] == "infographic_lite":
         return feature_pool[0]
     keyword_preferences = {
@@ -266,6 +342,12 @@ def _custom_angle(name: str) -> Dict[str, str]:
 
 
 def choose_angles(data: Dict[str, Any]) -> List[Dict[str, str]]:
+    if claim_mode(data) == "visual_only":
+        visual_angles = [
+            {"name": name, "kind": kind, "layout": layout, "style": style, "scene": scene}
+            for name, kind, layout, style, scene in VISUAL_ONLY_HYPOTHESES
+        ]
+        return [{**angle, "score": score_angle(data, angle)} for angle in visual_angles]
     angles = [{**_custom_angle(name), "supplied_preference": True} for name in data["angle_preferences"]]
     core = [
         {"name": name, "kind": kind, "layout": layout, "style": style, "scene": scene}
@@ -280,10 +362,27 @@ def choose_angles(data: Dict[str, Any]) -> List[Dict[str, str]]:
     unique, seen = [], set()
     for angle in angles:
         key = angle["name"].lower()
-        if key not in seen:
+        if key not in seen and angle_is_eligible(data, angle):
             unique.append({**angle, "score": score_angle(data, angle)})
             seen.add(key)
     return sorted(unique, key=lambda item: (-item["score"], item["name"]))
+
+
+def angle_is_eligible(data: Dict[str, Any], angle: Dict[str, str]) -> bool:
+    name = angle["name"].lower()
+    if angle["kind"] == "offer" and not can_use_offer(data):
+        return False
+    if angle["kind"] == "proof" and not can_use_social_proof(data):
+        return False
+    if any(term in name for term in ("before", "after", "transformation")) and not can_use_before_after(data):
+        return False
+    if angle["kind"] in {"problem", "comparison"} and not can_use_comparison_claim(data):
+        return False
+    if angle["layout"] == "infographic_lite" and not _claim_fact_pool(data):
+        return False
+    if angle["kind"] == "benefit" and not _claim_fact_pool(data):
+        return False
+    return True
 
 
 def score_angle(data: Dict[str, Any], angle: Dict[str, str]) -> int:
@@ -397,15 +496,38 @@ def lifestyle_headline(data: Dict[str, Any], angle: Dict[str, str], benefit: str
     elif family == "electronics":
         suffix = "Get More Done" if angle.get("name") == "Product Demonstration" else "In Your Setup"
     else:
-        suffix = "in Daily Use" if "use" in scene.lower() else "for Your Routine"
+        if angle.get("name") == "Product Demonstration":
+            suffix = "In Daily Use"
+        elif angle.get("name") == "UGC Real Use":
+            suffix = "In Your Routine"
+        else:
+            suffix = "For Your Routine"
     words = f"{phrase}. {suffix}.".split()
     return " ".join(words[:7]).rstrip(".") + "."
+
+
+def visual_only_headline(data: Dict[str, Any], angle: Dict[str, str]) -> str:
+    product = _short_product_name(data["product_name"])
+    category = " ".join(data["product_category"].title().split()[:3])
+    headlines = {
+        "Premium Product Hero": f"Meet {product}",
+        "Minimal Product Clarity": f"Clean, Modern {category} Design",
+        "Lifestyle Context": "Made for Your Routine",
+        "UGC Real Use": "Designed for Everyday Use",
+        "Product Demonstration": f"See {product} in Daily Use",
+        "Travel / Everyday Carry": f"{product} On the Go",
+        "Gift Presentation": f"A Simple {category} Gift",
+        "Contextual Product Use": "Product-Led Everyday Design",
+    }
+    return " ".join(headlines.get(angle.get("name"), f"Meet {product}").split()[:7])
 
 
 def build_copy(data: Dict[str, Any], angle: Dict[str, str], benefit: str, scene: str = "") -> Dict[str, Any]:
     mode = data["text_overlay_mode"]
     if mode == "none":
         return {"headline": "", "support": "", "callouts": [], "cta": ""}
+    if claim_mode(data) == "visual_only":
+        return {"headline": visual_only_headline(data, angle), "support": "", "callouts": [], "cta": ""}
 
     phrase = benefit_phrase(benefit, data)
     layout = angle["layout"]
@@ -415,9 +537,14 @@ def build_copy(data: Dict[str, Any], angle: Dict[str, str], benefit: str, scene:
     benefit_headline = phrase
     if angle.get("name") == "Benefit / Outcome":
         benefit_headline = " ".join(f"{phrase.rstrip('.')}. Every Day.".split()[:7])
+    elif angle.get("name") == "Infographic Feature":
+        benefit_headline = " ".join(f"{phrase.rstrip('.')}. At a Glance.".split()[:7])
+    problem_headline = phrase
+    if angle.get("name") == "Problem → Solution":
+        problem_headline = " ".join(f"{phrase.rstrip('.')}. Made Simple.".split()[:7])
     headline = {
         "clarity": clarity_headline,
-        "problem": phrase,
+        "problem": problem_headline,
         "lifestyle": lifestyle_headline(data, angle, benefit, scene),
         "benefit": benefit_headline,
         "comparison": phrase,
@@ -448,9 +575,32 @@ def build_copy(data: Dict[str, Any], angle: Dict[str, str], benefit: str, scene:
     return {"headline": headline, "support": support, "callouts": callouts[:2], "cta": cta}
 
 
+def collect_used_claims(data: Dict[str, Any], angle: Dict[str, str], benefit: str, copy: Dict[str, Any]) -> Dict[str, List[str]]:
+    if claim_mode(data) == "visual_only":
+        sources = ["reference_image_visual_facts"] if data["reference_image_visual_facts"] else ["neutral_copy"]
+        return {"used_claims": [], "evidence_source": sources}
+    rendered = " ".join([copy["headline"], copy["support"], *copy["callouts"], copy["cta"]]).lower()
+    used, sources = [], []
+    for fact in build_claim_safe_fact_pool(data):
+        variants = {fact["text"].lower(), benefit_phrase(fact["text"], data).lower()}
+        if fact["text"] == benefit or any(variant and variant in rendered for variant in variants):
+            used.append(fact["text"])
+            sources.append(fact["source"])
+    if angle["kind"] == "offer" and can_use_offer(data):
+        used.append(data["offer_info"])
+        sources.append("supplied_offer")
+    if angle["kind"] == "proof" and can_use_social_proof(data):
+        used.append(data["social_proof"])
+        sources.append("supplied_social_proof")
+    return {"used_claims": list(dict.fromkeys(used)), "evidence_source": list(dict.fromkeys(sources)) or ["neutral_copy"]}
+
+
 def build_audience_scene_bridge(data: Dict[str, Any], audience: str, scene: str, benefit: str, index: int) -> Dict[str, Any]:
-    moments = ["the moment the product is selected for use", "active product use during a familiar routine", "the immediate practical payoff after use", "a recognizable friction point just before use"]
-    behaviors = [f"selecting and using the product to achieve {benefit}", f"handling the product naturally while pursuing {benefit}", f"showing the product-led result: {benefit}"]
+    moments = ["the moment the product is selected for use", "active product use during a familiar routine", "a contextual product-handling moment", "a recognizable setup moment"]
+    if claim_mode(data) == "visual_only":
+        behaviors = ["handling the product naturally", "placing the product in a believable routine", "showing the visible product form in context"]
+    else:
+        behaviors = [f"selecting and using the product to achieve {benefit}", f"handling the product naturally while pursuing {benefit}", f"showing the product-led result: {benefit}"]
     cameras = ["tight product-and-action framing", "eye-level contextual medium shot", "hands-and-product detail", "product-led environmental hero"]
     return {
         "use_moment": cycle(moments, index),
@@ -550,9 +700,12 @@ def select_visual_style(data: Dict[str, Any], angle: Dict[str, str], index: int)
 
 def product_identity_instruction(data: Dict[str, Any]) -> str:
     locked = ", ".join(data["product_identity_constraints"]) or "silhouette, proportions, colorway, materials, packaging, logo position, controls, and distinctive details"
+    visible = ""
+    if data["reference_image_visual_facts"]:
+        visible = " Visible reference facts only: " + ", ".join(data["reference_image_visual_facts"]) + "."
     if data["reference_image"]:
-        return f"Preserve the supplied product reference exactly—lock {locked}. Do not redesign the SKU."
-    return f"Preserve the described product identity—keep {locked} consistent. Do not invent a different SKU or packaging."
+        return f"Preserve the supplied product reference exactly—lock {locked}. Do not redesign the SKU.{visible}"
+    return f"Preserve the described product identity—keep {locked} consistent. Do not invent a different SKU or packaging.{visible}"
 
 
 def text_instruction(data: Dict[str, Any], copy: Dict[str, Any], headline_zone: str) -> str:
@@ -594,6 +747,46 @@ def headline_is_natural(headline: str, angle_kind: str) -> bool:
     return bool(headline.strip()) and not any(pattern in lowered for pattern in broken) and 2 <= word_count <= 7
 
 
+def _normalized_claim_text(value: str) -> str:
+    return re.sub(r"[^a-z0-9%×]+", " ", value.lower().replace(",", "")).strip()
+
+
+def unsupported_claim_findings(data: Dict[str, Any], prompt: str) -> List[str]:
+    positive_prompt = prompt.split("AVOID:", 1)[0]
+    normalized_prompt = _normalized_claim_text(positive_prompt)
+    evidence = " ".join(fact["text"] for fact in _claim_fact_pool(data))
+    if can_use_offer(data):
+        evidence += " " + data["offer_info"]
+    if can_use_social_proof(data):
+        evidence += " " + data["social_proof"]
+    normalized_evidence = _normalized_claim_text(evidence)
+    findings = []
+
+    numeric_patterns = [
+        r"\b\d[\d,]*(?:\.\d+)?\s*(?:rpm|w|watt|watts|db|hours?|%)\b",
+        r"\b\d+(?:\.\d+)?\s*[x×]\s*(?:faster|stronger|better)\b",
+    ]
+    for pattern in numeric_patterns:
+        for match in re.findall(pattern, positive_prompt, flags=re.IGNORECASE):
+            if _normalized_claim_text(match) not in normalized_evidence:
+                findings.append(f"numeric claim lacks supplied source: {match}")
+
+    risky_phrases = [
+        "faster", "quiet motor", "lower noise", "temperature control", "smart temperature",
+        "heat damage", "battery life", "all hair types", "salon results", "clinically",
+        "waterproof", "drop-proof", "anti-yellowing", "certified", "guarantee",
+        "free shipping", "limited time", "best seller", "award winning", "rated",
+    ]
+    for phrase in risky_phrases:
+        if phrase in normalized_prompt and phrase not in normalized_evidence:
+            findings.append(f"unsupported claim phrase: {phrase}")
+    if ("before" in normalized_prompt or "after" in normalized_prompt) and not can_use_before_after(data):
+        findings.append("before/after language lacks explicit evidence")
+    if any(symbol in positive_prompt for symbol in ("★", "⭐")) and not can_use_social_proof(data):
+        findings.append("rating symbol lacks supplied social proof")
+    return list(dict.fromkeys(findings))
+
+
 def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dict[str, Any]:
     findings = []
     word_count = len(prompt.split())
@@ -609,6 +802,10 @@ def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dic
         findings.append("proof angle lacks supplied proof")
     if plan["angle_kind"] == "offer" and not data["offer_info"]:
         findings.append("offer angle lacks supplied offer")
+    if any(term in plan["angle"]["name"].lower() for term in ("before", "after", "transformation")) and not can_use_before_after(data):
+        findings.append("before/after angle lacks explicit evidence")
+    if plan["angle_kind"] in {"problem", "comparison"} and not can_use_comparison_claim(data):
+        findings.append("comparison angle lacks supplied product facts")
     if plan["placement_instruction"] not in prompt:
         findings.append("placement safe-zone instruction missing from render prompt")
     if data["text_overlay_mode"] != "none" and not headline_is_natural(plan["copy"]["headline"], plan["angle_kind"]):
@@ -619,12 +816,13 @@ def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dic
     expected_scene = select_scene_for_hypothesis(data, plan["angle"], plan["benefit"], plan["audience"])
     if plan["scene"] != expected_scene:
         findings.append("scene is not compatible with the selected hypothesis")
+    findings.extend(unsupported_claim_findings(data, prompt))
     return {
         "pass": not findings,
         "findings": findings,
         "revised": False,
         "prompt_word_count": word_count,
-        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "copy accuracy", "placement safe-zone compiled", "claim integrity", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
+        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "copy accuracy", "placement safe-zone compiled", "unsupported claim check", "numeric claim source check", "before/after evidence check", "proof source check", "offer source check", "spec source check", "compatibility claim check", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
     }
 
 
@@ -650,6 +848,8 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         dna_values = VISUAL_DNA[selected_style]
         dna = dict(zip(["name", "lighting", "camera_language", "background_character", "color_mood", "material_treatment", "graphic_treatment"], dna_values))
         bridge = build_audience_scene_bridge(data, audience, scene, benefit, index)
+        copy = build_copy(data, angle, benefit, scene)
+        evidence = collect_used_claims(data, angle, benefit, copy)
         plan = {
             "angle_kind": angle["kind"],
             "angle": angle,
@@ -659,7 +859,9 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
             "audience_scene_bridge": bridge,
             "layout_profile": layout,
             "visual_dna": dna,
-            "copy": build_copy(data, angle, benefit, scene),
+            "copy": copy,
+            "used_claims": evidence["used_claims"],
+            "evidence_source": evidence["evidence_source"],
             "negative_constraints": negatives,
             "placement_instruction": f"Safe composition: {safe_composition}. {placement_note}",
         }
@@ -677,7 +879,10 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                 "core_benefit": benefit,
                 "use_moment": bridge["use_moment"],
                 "visible_behavior": bridge["visible_behavior"],
-                "rationale": f"Express {benefit} through a {angle['name']} concept for {audience}.",
+                "rationale": (
+                    f"Express {benefit} through a {angle['name']} concept for {audience}."
+                    if benefit else f"Present the visible product safely through a {angle['name']} concept for {audience}."
+                ),
             },
             "placement_plan": {
                 "placement": data["placement"], "aspect_ratio": data["aspect_ratio"], "canvas": canvas,
@@ -698,6 +903,11 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                 "nano_banana": prompt + "\n\nPrioritize product fidelity and composition; keep typography simple and exact.",
             },
             "negative_constraints": negatives,
+            "evidence_lock": {
+                "claim_mode": claim_mode(data),
+                "used_claims": evidence["used_claims"],
+                "evidence_source": evidence["evidence_source"],
+            },
             "quality_check": quality,
         })
 
@@ -731,6 +941,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
             "product_name": data["product_name"], "product_category": data["product_category"],
             "generation_count": data["generation_count"], "placement": data["placement"],
             "aspect_ratio": data["aspect_ratio"], "variation_strength": data["variation_strength"],
+            "claim_mode": claim_mode(data),
         },
         "creative_plans": creatives,
         "quality_checks": {

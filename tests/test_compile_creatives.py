@@ -242,3 +242,63 @@ def test_eight_creative_batches_have_distinct_category_specific_headlines():
         assert len(set(headlines)) >= 6
         assert "Ready for Every Day" not in headlines
         assert output["quality_checks"]["pass"] is True
+
+
+def test_hair_dryer_image_only_never_invents_claims():
+    data = compile_creatives.normalize({"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"Product reference image only.","reference_image":"hair-dryer.png","generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    forbidden = ["rpm", "faster", "quiet motor", "temperature control", "heat damage", "all hair types", "salon", "before", "after"]
+    angles = {item["hypothesis"]["angle"].lower() for item in output["creative_plans"]}
+    assert output["input_summary"]["claim_mode"] == "visual_only"
+    for item in output["creative_plans"]:
+        positive = item["render_prompt"].split("AVOID:", 1)[0].lower()
+        assert all(term not in positive for term in forbidden)
+    assert not any("before" in angle or "after" in angle or "comparison" in angle for angle in angles)
+    assert all(item["evidence_lock"]["used_claims"] == [] for item in output["creative_plans"])
+    assert output["quality_checks"]["pass"] is True
+
+
+def test_supplied_numeric_spec_is_allowed_without_extra_numbers():
+    data = compile_creatives.normalize({"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"A compact dryer.","supplied_specs":["110000 RPM"],"generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    positive = " ".join(item["render_prompt"].split("AVOID:",1)[0] for item in output["creative_plans"])
+    assert "110000 RPM" in positive
+    assert "3×" not in positive and "2 minutes" not in positive and "dB" not in positive
+    assert all(item["quality_check"]["pass"] is True for item in output["creative_plans"])
+
+
+def test_supplied_benefit_is_not_expanded_into_stronger_claims():
+    data = compile_creatives.normalize({"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"A compact dryer.","benefits":["fast drying"],"generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    positive = " ".join(item["render_prompt"].split("AVOID:",1)[0] for item in output["creative_plans"]).lower()
+    assert "fast drying" in positive
+    assert "3× faster" not in positive and "dries in 2 minutes" not in positive and "heat damage" not in positive
+    assert output["quality_checks"]["pass"] is True
+
+
+def test_before_after_requires_explicit_evidence():
+    base = {"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"A compact dryer.","benefits":["fast drying"],"angle_preferences":["Before After Transformation"]}
+    blocked = compile_creatives.choose_angles(compile_creatives.normalize(base))
+    allowed = compile_creatives.choose_angles(compile_creatives.normalize({**base,"before_after_evidence":["User supplied paired result images"]}))
+    assert all("Before After" not in item["name"] for item in blocked)
+    assert any("Before After" in item["name"] for item in allowed)
+
+
+def test_proof_and_offer_language_require_sources():
+    base = {"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"A compact dryer.","benefits":["fast drying"],"generation_count":8}
+    without = compile_creatives.build_creatives(compile_creatives.normalize(base))
+    without_text = " ".join(item["render_prompt"] for item in without["creative_plans"]).lower()
+    without_angles = {item["hypothesis"]["angle"] for item in without["creative_plans"]}
+    assert "Supplied Social Proof" not in without_angles and "Supplied Offer / Value" not in without_angles
+    assert all(term not in without_text for term in ("customer quote", "rating", "free shipping", "discount", "limited time"))
+
+    supplied = compile_creatives.normalize({**base,"social_proof":"Verified buyer: easy to use","offer_info":"Free shipping over $35"})
+    eligible = {item["kind"] for item in compile_creatives.choose_angles(supplied)}
+    assert {"proof", "offer"} <= eligible
+
+
+def test_quality_scanner_rejects_unsupported_claim_patterns():
+    data = compile_creatives.normalize({"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"Reference image only."})
+    findings = compile_creatives.unsupported_claim_findings(data, "PRODUCT: Compact Hair Dryer. TEXT: 110,000 RPM. 3× faster. Works for all hair types. AVOID: clutter.")
+    assert any("numeric claim" in finding for finding in findings)
+    assert any("all hair types" in finding for finding in findings)
