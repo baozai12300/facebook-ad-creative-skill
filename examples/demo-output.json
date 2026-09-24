@@ -1,41 +1,65 @@
 {
+  "schema_version": "2.0",
   "input_summary": {
     "product_name": "GlowBarrier Vitamin C Serum",
     "product_category": "beauty skincare",
-    "generation_count": 2,
+    "generation_count": 1,
+    "placement": "feed",
     "aspect_ratio": "4:5",
     "variation_strength": "high"
   },
   "creative_plans": [
     {
-      "id": "creative_01",
-      "creative_plan": {
-        "target_audience": "busy professionals",
-        "interest_cues": ["skincare routine", "clean beauty", "beauty skincare"],
-        "pain_point": "busy professionals need a simpler way to get brighter-looking skin",
-        "core_benefit": "brighter-looking skin",
+      "id": "C01",
+      "creative_id": "C01",
+      "hypothesis": {
+        "audience": "busy professionals",
+        "awareness_stage": "cold",
+        "objective": "purchase",
         "angle": "Glow-up routine",
-        "scene": "bathroom vanity morning routine",
-        "style": "minimal ecommerce style",
-        "layout": "Meta ASC V1: top headline, center product, bottom CTA",
-        "copy": {
-          "headline": "Meet GlowBarrier Vitamin C Serum",
-          "subheadline": "Free shipping over $35",
-          "bullets": ["10% vitamin C"],
-          "cta": "See Why"
-        },
-        "difference_statement": "This variation focuses on Glow-up routine for busy professionals, using a distinct bathroom vanity morning routine, minimal ecommerce style, and Meta ASC V1 layout compared with the other creatives in this batch."
+        "core_benefit": "brighter-looking skin",
+        "use_moment": "the moment the product is selected for use",
+        "visible_behavior": "selecting and using the product to achieve brighter-looking skin",
+        "rationale": "Express the supplied benefit through a visible morning-routine concept."
       },
+      "placement_plan": {
+        "placement": "feed",
+        "aspect_ratio": "4:5",
+        "canvas": "1080x1350",
+        "safe_composition": "center 80%",
+        "adaptation_notes": "Keep product and headline away from extreme edges.",
+        "native_ratio": "4:5"
+      },
+      "visual_plan": {
+        "scene": "bathroom vanity morning routine",
+        "audience_scene_bridge": {
+          "use_moment": "the moment the product is selected for use",
+          "visible_behavior": "selecting and using the product to achieve brighter-looking skin",
+          "environment_cues": ["bathroom vanity morning routine", "credible everyday details"],
+          "prop_cues": ["use-case-relevant props only"],
+          "casting_direction": "Use a person only when their action clarifies the use case.",
+          "camera_language": "tight product-and-action framing",
+          "copy_tone": "clean, confident, modern"
+        },
+        "visual_dna": {"name": "Lifestyle Natural"},
+        "layout": "L4 Lifestyle Story",
+        "product_position": "in natural use near center-right",
+        "headline_zone": "environmental negative space",
+        "support_zone": "none",
+        "negative_space": "around the headline and product",
+        "visual_flow": "use action → product → outcome",
+        "text_mode": "light",
+        "copy": {"headline": "Made for your daily routine", "support": "", "callouts": [], "cta": ""}
+      },
+      "render_prompt": "Create a 4:5 Meta ecommerce ad image. PRODUCT: preserve product identity. SCENE: morning vanity routine. COMPOSITION: product near center-right. LOOK: soft natural daylight. TEXT: render headline exactly. AVOID: altered packaging or invented claims.",
       "model_prompts": {
-        "universal": "Create a Meta/Facebook ad image for GlowBarrier Vitamin C Serum...",
-        "gpt_image_2": "High-quality commercial ad image with precise layout control...",
-        "nano_banana": "Direct image prompt: clear product hero, distinct visual concept...",
-        "negative_constraints": ["avoid cluttered composition", "avoid tiny product placement", "avoid excessive text overlay"]
-      }
+        "universal": "Compact structured render prompt.",
+        "gpt_image_2": "Compact structured render prompt with exact typography.",
+        "nano_banana": "Compact structured render prompt with simple typography."
+      },
+      "negative_constraints": ["tiny product", "altered product design or packaging"],
+      "quality_check": {"pass": true, "findings": [], "revised": false, "prompt_word_count": 32, "checks": ["product fidelity"]}
     }
   ],
-  "quality_checks": [
-    "Generated creative variants.",
-    "Scene-style-layout combinations are rotated to reduce same-template outputs."
-  ]
+  "quality_checks": {"pass": true, "findings": [], "distinct_angles": 1, "distinct_layouts": 1, "distinct_hypothesis_combinations": 1}
 }

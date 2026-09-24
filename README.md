@@ -60,9 +60,13 @@ python scripts/compile_creatives.py examples/beauty-serum.json
 
 输出内容包含：
 
-- Creative Plan：受众、兴趣词、痛点、卖点、场景、风格、版式、文案方向、差异点
-- Model Prompt：通用 Prompt、GPT Image 2 优化版、Nano Banana 优化版、负面约束
-- Batch Diversity Notes：同批次差异化说明
+- Creative Hypothesis：受众、认知阶段、广告目标、主导 Angle、使用时刻与核心利益点
+- Visual Plan：Placement、场景、Visual DNA、产品位置、文字区域、留白和视觉动线
+- Compact Render Prompt：只保留产品保真、场景、构图、视觉表现、精确文案与负面约束
+- Model Prompt：通用 Prompt、GPT Image 2 优化版与 Nano Banana 优化版
+- Quality Gate：逐创意检查和批次级 Angle / Layout / Hypothesis 多样性检查
+
+脚本输出使用 `schema_version: "2.0"`。策划依据保留在结构化对象中，不会再把受众分析、兴趣词、Angle rationale 或变体说明塞进最终生图 Prompt。
 
 ## 输入示例
 

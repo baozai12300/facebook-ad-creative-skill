@@ -21,6 +21,11 @@
     "visual_style_preference": { "type": "array", "items": { "type": "string" }, "default": [] },
     "banned_elements": { "type": "array", "items": { "type": "string" }, "default": [] },
     "platform": { "type": "string", "enum": ["facebook", "instagram", "meta"], "default": "facebook" },
+    "placement": {
+      "type": "string",
+      "enum": ["feed", "square_feed", "story", "reels", "carousel"],
+      "default": "feed"
+    },
     "aspect_ratio": { "type": "string", "enum": ["1:1", "4:5", "9:16", "16:9"], "default": "4:5" },
     "language": { "type": "string", "default": "en" },
     "generation_count": { "type": "integer", "minimum": 1, "maximum": 24, "default": 4 },
@@ -44,10 +49,23 @@
     },
     "cta_mode": { "type": "string", "enum": ["none", "soft", "direct"], "default": "soft" },
     "offer_info": { "type": "string", "default": "" },
+    "social_proof": { "type": "string", "default": "" },
+    "verified_facts": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "supplied_specs": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "reference_image_visual_facts": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "inferred_context": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "before_after_evidence": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "verified_result_claims": { "type": "array", "items": { "type": "string" }, "default": [] },
     "seasonality": { "type": "string", "default": "" },
     "compliance_notes": { "type": "string", "default": "" },
     "competitor_style_notes": { "type": "string", "default": "" },
-    "variation_strength": { "type": "string", "enum": ["low", "medium", "high"], "default": "high" }
+    "variation_strength": { "type": "string", "enum": ["low", "medium", "high"], "default": "high" },
+    "reference_image": { "type": "string", "default": "" },
+    "product_identity_constraints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    }
   },
   "additionalProperties": true
 }

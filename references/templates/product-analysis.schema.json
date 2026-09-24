@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/product-analysis.schema.json",
+  "title": "Provider-Neutral ProductAnalysis",
+  "type": "object",
+  "required": ["analysis_version", "product_category", "product_name", "visual_identity", "visible_facts", "user_supplied_facts", "inferred_context", "unknowns", "protected_identity", "possible_use_scenes", "confidence", "conflicts", "source"],
+  "properties": {
+    "analysis_version": { "const": "1.0" },
+    "product_category": { "type": "string", "minLength": 1 },
+    "product_name": { "type": "string", "minLength": 1 },
+    "visual_identity": {
+      "type": "object",
+      "required": ["shape", "proportions", "colors", "materials", "finish", "distinctive_details", "controls", "logo", "visible_text"],
+      "properties": {
+        "shape": { "type": "string" },
+        "proportions": { "type": "string" },
+        "colors": { "type": "array", "items": { "type": "string" } },
+        "materials": { "type": "array", "items": { "type": "string" } },
+        "finish": { "type": "string" },
+        "distinctive_details": { "type": "array", "items": { "type": "string" } },
+        "controls": { "type": "array", "items": { "type": "string" } },
+        "logo": { "type": "string" },
+        "visible_text": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "visible_facts": { "type": "array", "items": { "type": "string" } },
+    "user_supplied_facts": { "type": "array", "items": { "type": "string" } },
+    "inferred_context": { "type": "array", "items": { "type": "string" } },
+    "unknowns": { "type": "array", "items": { "type": "string" } },
+    "protected_identity": { "type": "array", "items": { "type": "string" } },
+    "possible_use_scenes": { "type": "array", "items": { "type": "string" } },
+    "confidence": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 } },
+    "conflicts": { "type": "array", "items": { "type": "object" } },
+    "source": {
+      "type": "object",
+      "required": ["provider", "model"],
+      "properties": { "provider": { "type": "string" }, "model": { "type": "string" } },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

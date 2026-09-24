@@ -1,5 +1,9 @@
 # Audience Engine
 
+## Mobile Accessories
+
+For `phone case`, `mobile accessories`, `smartphone accessories`, `phone accessories`, `iphone case`, and `magsafe`, prefer behavior-based hypotheses such as device protection shoppers, style-focused phone users, minimal accessory buyers, MagSafe users, case refresh shoppers, and gift buyers. Express these through use context; never infer stereotyped demographic traits.
+
 The Audience Engine converts product inputs into buyer hypotheses.
 
 ## Required Outputs
