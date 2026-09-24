@@ -302,3 +302,38 @@ def test_quality_scanner_rejects_unsupported_claim_patterns():
     findings = compile_creatives.unsupported_claim_findings(data, "PRODUCT: Compact Hair Dryer. TEXT: 110,000 RPM. 3× faster. Works for all hair types. AVOID: clutter.")
     assert any("numeric claim" in finding for finding in findings)
     assert any("all hair types" in finding for finding in findings)
+
+
+def test_copy_tiers_allow_creative_language_without_claim_evidence():
+    data = compile_creatives.normalize({"product_name":"City Sling","product_category":"apparel bag","product_description":"Product image only."})
+    copy = compile_creatives.visual_only_copy(data, {"name":"Lifestyle Context"}, "city commute")
+    tiers = compile_creatives.classify_copy(data, copy)
+    assert copy["headline"] == "BUILT AROUND YOUR ROUTINE"
+    assert tiers["headline"] == "creative_lifestyle"
+    assert tiers["support"] == "soft_benefit"
+    assert compile_creatives.unsupported_hard_copy_findings(data, copy) == []
+
+
+def test_hard_claim_still_requires_matching_evidence():
+    without = compile_creatives.normalize({"product_name":"City Sling","product_category":"apparel bag","product_description":"Product image only."})
+    hard_copy = {"headline":"WATERPROOF","support":"","callouts":[],"cta":""}
+    assert compile_creatives.classify_copy_tier(without, "WATERPROOF") == "hard_claim"
+    assert compile_creatives.unsupported_hard_copy_findings(without, hard_copy)
+
+    supplied = compile_creatives.normalize({"product_name":"City Sling","product_category":"apparel bag","product_description":"Supplied product facts.","verified_facts":["waterproof"]})
+    assert compile_creatives.unsupported_hard_copy_findings(supplied, hard_copy) == []
+
+    material_copy = {"headline":"Made from full-grain leather","support":"","callouts":[],"cta":""}
+    assert compile_creatives.unsupported_hard_copy_findings(without, material_copy)
+
+
+def test_visual_only_batch_uses_art_directed_layouts_and_copy_hierarchy():
+    data = compile_creatives.normalize({"product_name":"Compact Hair Dryer","product_category":"hair dryer","product_description":"Product image only.","reference_image":"dryer.png","generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    layouts = {item["visual_plan"]["layout"] for item in output["creative_plans"]}
+    assert {"L11 Editorial Poster", "L12 Detail Crop", "L13 Asymmetric Grid"} <= layouts
+    assert all(item["visual_plan"]["typography"] for item in output["creative_plans"])
+    assert all(item["visual_plan"]["graphic_structure"] for item in output["creative_plans"])
+    assert all("DESIGN:" in item["render_prompt"] for item in output["creative_plans"])
+    assert all(item["evidence_lock"]["used_claims"] == [] for item in output["creative_plans"])
+    assert output["quality_checks"]["pass"] is True

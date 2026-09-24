@@ -15,16 +15,17 @@
     },
     "visual": {
       "type": "object",
-      "required": ["scene", "product_action", "layout", "camera", "lighting", "visual_dna"],
+      "required": ["scene", "product_action", "layout", "camera", "lighting", "visual_dna", "typography", "graphic_structure"],
       "properties": {
         "scene": { "type": "string" }, "product_action": { "type": "string" },
         "layout": { "type": "string" }, "camera": { "type": "string" },
-        "lighting": { "type": "string" }, "visual_dna": { "type": "string" }
+        "lighting": { "type": "string" }, "visual_dna": { "type": "string" },
+        "typography": { "type": "string" }, "graphic_structure": { "type": "string" }
       }
     },
     "copy": { "type": "object", "required": ["headline", "support"], "properties": { "headline": { "type": "string" }, "support": { "type": "string" } } },
     "placement": { "type": "object", "required": ["platform", "placement", "ratio"], "properties": { "platform": { "type": "string" }, "placement": { "type": "string" }, "ratio": { "type": "string" } } },
-    "evidence": { "type": "object", "required": ["claims_used", "sources"], "properties": { "claims_used": { "type": "array", "items": { "type": "string" } }, "sources": { "type": "array", "items": { "type": "string" } } } },
+    "evidence": { "type": "object", "required": ["claims_used", "sources", "copy_tiers"], "properties": { "claims_used": { "type": "array", "items": { "type": "string" } }, "sources": { "type": "array", "items": { "type": "string" } }, "copy_tiers": { "type": "object" } } },
     "render_prompt": { "type": "string", "minLength": 1 },
     "quality": { "type": "object" }
   },

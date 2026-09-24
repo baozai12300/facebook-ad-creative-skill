@@ -25,9 +25,10 @@ Use this order:
 3. Scene + action
 4. Placement safe-zone and native recomposition rule
 5. Composition geometry
-6. Lighting / camera / visual style
-7. Exact text, only if needed
-8. Negative constraints
+6. Typography hierarchy + graphic structure
+7. Lighting / camera / visual style
+8. Exact text, only if needed
+9. Negative constraints
 
 ## Compact Template
 
@@ -39,6 +40,8 @@ PRODUCT: Preserve the supplied product reference exactly: {identity_constraints}
 SCENE: {scene_and_action}.
 
 COMPOSITION: {product_position_and_scale}. {headline_zone}. {support_zone}. Keep {negative_space} uncluttered. Visual flow: {visual_flow}.
+
+DESIGN: {typography_hierarchy}. {graphic_structure}. Functional callouts only from supplied evidence.
 
 LOOK: {lighting}. {camera_language}. {visual_style}. {color_mood}. Commercial realism, believable materials, clean separation.
 
