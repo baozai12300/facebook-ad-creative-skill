@@ -32,8 +32,8 @@ CATEGORY_AUDIENCES = {
     "phone accessories": ["device protection shoppers", "style-focused phone users", "minimal accessory buyers", "MagSafe users", "case refresh shoppers", "gift buyers"],
     "iphone case": ["device protection shoppers", "style-focused phone users", "minimal accessory buyers", "MagSafe users", "case refresh shoppers", "gift buyers"],
     "magsafe": ["MagSafe users", "device protection shoppers", "minimal accessory buyers", "style-focused phone users", "case refresh shoppers", "gift buyers"],
-    "beauty": ["skincare beginners", "busy professionals", "ingredient-aware shoppers"],
-    "skincare": ["skincare beginners", "busy professionals", "ingredient-aware shoppers"],
+    "beauty": ["skincare beginners", "busy professionals", "ingredient-aware shoppers", "premium skincare shoppers"],
+    "skincare": ["skincare beginners", "busy professionals", "ingredient-aware shoppers", "premium skincare shoppers"],
     "pet": ["pet parents", "small apartment pet owners", "comfort-focused pet buyers"],
     "home": ["new homeowners", "renters", "organization seekers"],
     "kitchen": ["home cooks", "meal prep users", "busy families"],
@@ -173,6 +173,77 @@ def infer_audiences(data: Dict[str, Any]) -> List[str]:
         if key in category:
             return audiences
     return ["broad ecommerce shoppers", "problem-aware consumers", "gift buyers"]
+
+
+def category_family(data: Dict[str, Any]) -> str:
+    category = data["product_category"].lower()
+    if any(alias in category for alias in ("phone case", "mobile accessories", "smartphone accessories", "phone accessories", "iphone case", "magsafe")):
+        return "mobile_accessories"
+    if any(alias in category for alias in ("skincare", "beauty", "serum", "cosmetic")):
+        return "skincare"
+    if any(alias in category for alias in ("electronics", "usb-c", "usb c", "hub", "adapter", "charger")):
+        return "electronics"
+    return "general"
+
+
+def select_benefit_for_angle(data: Dict[str, Any], angle: Dict[str, str]) -> str:
+    benefits = data["benefits"] or data["key_features"] or [data["product_description"]]
+    feature_pool = data["key_features"] or benefits
+    if angle["layout"] == "infographic_lite":
+        return feature_pool[0]
+    keyword_preferences = {
+        "problem": ("protect", "reduce", "less", "fewer", "faster", "clutter", "mess"),
+        "lifestyle": ("daily", "easy", "charge", "connect", "light", "comfort", "carry"),
+        "benefit": ("more", "even", "hydrate", "connect", "charge", "glow"),
+        "comparison": ("reduce", "less", "more", "faster", "easy"),
+    }
+    for benefit in benefits:
+        if any(keyword in benefit.lower() for keyword in keyword_preferences.get(angle["kind"], ())):
+            return benefit
+    if angle["kind"] == "benefit" and len(benefits) > 1:
+        return benefits[1]
+    return benefits[0]
+
+
+def select_audience_for_angle(data: Dict[str, Any], angle: Dict[str, str], benefit: str) -> str:
+    audiences = infer_audiences(data)
+    family = category_family(data)
+    text = f"{data['product_name']} {data['product_category']} {angle['name']} {angle['kind']} {benefit}".lower()
+    preferred = None
+    if "gift" in text:
+        preferred = "tech gift buyers" if family == "electronics" else "gift buyers"
+    elif family == "mobile_accessories":
+        if angle["kind"] == "problem":
+            preferred = "device protection shoppers"
+        elif angle["kind"] == "clarity":
+            preferred = "minimal accessory buyers"
+        elif angle["name"] == "UGC Real Use":
+            preferred = "case refresh shoppers"
+        elif ("magsafe" in text or "wireless charg" in text or "car mount" in text) and angle["kind"] in {"benefit", "lifestyle", "comparison"}:
+            preferred = "MagSafe users"
+        elif "protect" in text:
+            preferred = "device protection shoppers"
+        else:
+            preferred = "style-focused phone users"
+    elif family == "skincare":
+        if angle["kind"] == "clarity":
+            preferred = "premium skincare shoppers"
+        elif angle["kind"] == "benefit" or any(word in text for word in ("texture", "ingredient", "feature")):
+            preferred = "ingredient-aware shoppers"
+        elif angle["name"] == "UGC Real Use":
+            preferred = "skincare beginners" if data["awareness_stage"] == "cold" else "busy professionals"
+        else:
+            preferred = "busy professionals"
+    elif family == "electronics":
+        if "gift" in text:
+            preferred = "tech gift buyers"
+        elif angle["kind"] in {"problem", "benefit", "comparison"}:
+            preferred = "productivity users"
+        elif angle["kind"] == "lifestyle" and any(word in text for word in ("travel", "commute", "portable")):
+            preferred = "commuters"
+        else:
+            preferred = "productivity users"
+    return preferred if preferred in audiences else audiences[0]
 
 
 def cycle(values: List[Any], index: int) -> Any:
@@ -316,18 +387,39 @@ def _short_fact(value: str, data: Dict[str, Any]) -> str:
     return benefit_phrase(value, data)
 
 
-def build_copy(data: Dict[str, Any], angle: Dict[str, str], benefit: str) -> Dict[str, Any]:
+def lifestyle_headline(data: Dict[str, Any], angle: Dict[str, str], benefit: str, scene: str = "") -> str:
+    phrase = benefit_phrase(benefit, data).rstrip(".")
+    family = category_family(data)
+    if family == "mobile_accessories":
+        suffix = "On the Go" if angle.get("name") == "Product Demonstration" else "In Daily Carry"
+    elif family == "skincare":
+        suffix = "One Simple Step" if angle.get("name") == "Product Demonstration" else "Every Morning"
+    elif family == "electronics":
+        suffix = "Get More Done" if angle.get("name") == "Product Demonstration" else "In Your Setup"
+    else:
+        suffix = "in Daily Use" if "use" in scene.lower() else "for Your Routine"
+    words = f"{phrase}. {suffix}.".split()
+    return " ".join(words[:7]).rstrip(".") + "."
+
+
+def build_copy(data: Dict[str, Any], angle: Dict[str, str], benefit: str, scene: str = "") -> Dict[str, Any]:
     mode = data["text_overlay_mode"]
     if mode == "none":
         return {"headline": "", "support": "", "callouts": [], "cta": ""}
 
     phrase = benefit_phrase(benefit, data)
     layout = angle["layout"]
+    clarity_headline = f"Meet {_short_product_name(data['product_name'])}"
+    if angle.get("name") == "Minimal Product Clarity":
+        clarity_headline = f"{_short_product_name(data['product_name'])} Refined"
+    benefit_headline = phrase
+    if angle.get("name") == "Benefit / Outcome":
+        benefit_headline = " ".join(f"{phrase.rstrip('.')}. Every Day.".split()[:7])
     headline = {
-        "clarity": f"Meet {_short_product_name(data['product_name'])}",
+        "clarity": clarity_headline,
         "problem": phrase,
-        "lifestyle": "Ready for Every Day",
-        "benefit": phrase,
+        "lifestyle": lifestyle_headline(data, angle, benefit, scene),
+        "benefit": benefit_headline,
         "comparison": phrase,
         "proof": data["social_proof"],
         "offer": f"Meet {_short_product_name(data['product_name'])}",
@@ -371,32 +463,54 @@ def build_audience_scene_bridge(data: Dict[str, Any], audience: str, scene: str,
     }
 
 
-def select_scene(data: Dict[str, Any], angle: Dict[str, str], index: int) -> str:
+def select_scene_for_hypothesis(data: Dict[str, Any], angle: Dict[str, str], benefit: str, audience: str) -> str:
+    text = f"{angle['name']} {angle['kind']} {benefit} {audience}".lower()
     if data["scene_preferences"]:
-        preference_index = 0 if data["variation_strength"] == "low" else index % len(data["scene_preferences"])
-        return data["scene_preferences"][preference_index]
-    category = data["product_category"].lower()
-    mobile_scenes = [
-        "commute with the protected phone in hand", "organized desk with phone and case",
-        "mirror selfie showing the case", "cafe table everyday carry", "car mount use",
-        "MagSafe wireless charging", "travel carry moment", "everyday carry flat lay",
-    ]
-    if any(alias in category for alias in ("phone case", "mobile accessories", "smartphone accessories", "phone accessories", "iphone case", "magsafe")):
-        scene_index = 0 if data["variation_strength"] == "low" else index % len(mobile_scenes)
-        return f"{mobile_scenes[scene_index]}; {angle['scene']}"
-    category_scene = "believable everyday environment"
-    for keys, value in [
-        (("beauty", "skincare"), "morning vanity or bathroom routine"),
-        (("kitchen",), "clean food-prep counter during use"),
-        (("electronics",), "modern desk, commute, or creator setup"),
-        (("pet",), "comfortable real-home pet interaction"),
-        (("apparel",), "natural getting-ready or on-the-go moment"),
-        (("home",), "organized lived-in home context"),
-    ]:
-        if any(key in category for key in keys):
-            category_scene = value
-            break
-    return angle["scene"] if angle["kind"] == "clarity" else f"{category_scene}; {angle['scene']}"
+        terms = set(text.replace("→", " ").replace("/", " ").split())
+        return max(data["scene_preferences"], key=lambda scene: sum(term in scene.lower() for term in terms))
+
+    family = category_family(data)
+    if family == "mobile_accessories":
+        if angle["kind"] == "clarity":
+            return "minimal studio or clean desk product hero"
+        if "magsafe" in text or "wireless charg" in text:
+            return "MagSafe wireless charging or car-mount use"
+        if angle["kind"] == "problem" or "protect" in text:
+            return "commute protection moment with a believable drop-risk context"
+        if angle["name"] == "UGC Real Use":
+            return "cafe or everyday-carry phone-in-hand snapshot"
+        if angle["kind"] == "lifestyle":
+            return "mirror-selfie or cafe everyday-carry moment"
+        if "gift" in text:
+            return "phone-case gift unboxing"
+        return "organized desk with phone and case in practical use"
+    if family == "skincare":
+        if angle["kind"] == "clarity":
+            return "premium studio or refined vanity product hero"
+        if angle["kind"] == "benefit" or any(word in text for word in ("texture", "ingredient", "feature")):
+            return "close serum texture detail beside a clean vanity"
+        if angle["name"] == "UGC Real Use":
+            return "natural morning skincare routine in a real bathroom"
+        if angle["kind"] == "lifestyle":
+            return "simple morning vanity routine with product in use"
+        if "gift" in text:
+            return "skincare gift unboxing on a clean vanity"
+        return "clean vanity problem-to-routine transition"
+    if family == "electronics":
+        if angle["kind"] == "clarity":
+            return "clean studio or minimal desk product hero"
+        if angle["kind"] == "problem":
+            return "cable-clutter desk transitioning to an organized hub setup"
+        if angle["kind"] == "lifestyle":
+            return "real laptop connection and multi-port use at a desk or while traveling"
+        if "gift" in text:
+            return "tech gift unboxing beside a laptop setup"
+        return "organized productivity desk with visible connected accessories"
+    if "gift" in text:
+        return "believable gift unboxing moment"
+    if angle["kind"] == "clarity":
+        return angle["scene"]
+    return f"believable product-use environment; {angle['scene']}"
 
 
 def preferred_visual_styles(data: Dict[str, Any]) -> List[str]:
@@ -499,19 +613,23 @@ def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dic
         findings.append("placement safe-zone instruction missing from render prompt")
     if data["text_overlay_mode"] != "none" and not headline_is_natural(plan["copy"]["headline"], plan["angle_kind"]):
         findings.append("headline is empty, too long, or resembles broken template grammar")
+    expected_audience = select_audience_for_angle(data, plan["angle"], plan["benefit"])
+    if plan["audience"] != expected_audience:
+        findings.append("audience is not compatible with angle, category, and benefit")
+    expected_scene = select_scene_for_hypothesis(data, plan["angle"], plan["benefit"], plan["audience"])
+    if plan["scene"] != expected_scene:
+        findings.append("scene is not compatible with the selected hypothesis")
     return {
         "pass": not findings,
         "findings": findings,
         "revised": False,
         "prompt_word_count": word_count,
-        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "copy accuracy", "placement safe-zone compiled", "claim integrity", "headline grammar", "prompt word budget"],
+        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "copy accuracy", "placement safe-zone compiled", "claim integrity", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
     }
 
 
 def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
-    audiences = infer_audiences(data)
     angles = select_angles(data, data["generation_count"])
-    benefits = data["benefits"] or data["key_features"] or [data["product_description"]]
     compliance_constraints = []
     if data["compliance_notes"]:
         compliance_constraints.append(data["compliance_notes"])
@@ -523,9 +641,9 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
 
     for index in range(data["generation_count"]):
         angle = angles[index]
-        audience = cycle(audiences, index)
-        benefit = cycle(benefits, index)
-        scene = select_scene(data, angle, index)
+        benefit = select_benefit_for_angle(data, angle)
+        audience = select_audience_for_angle(data, angle, benefit)
+        scene = select_scene_for_hypothesis(data, angle, benefit, audience)
         layout_values = LAYOUT_PROFILES[angle["layout"]]
         layout = dict(zip(["name", "product_position", "headline_zone", "support_zone", "negative_space", "visual_flow"], layout_values))
         selected_style = select_visual_style(data, angle, index)
@@ -534,11 +652,14 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         bridge = build_audience_scene_bridge(data, audience, scene, benefit, index)
         plan = {
             "angle_kind": angle["kind"],
+            "angle": angle,
+            "benefit": benefit,
+            "audience": audience,
             "scene": scene,
             "audience_scene_bridge": bridge,
             "layout_profile": layout,
             "visual_dna": dna,
-            "copy": build_copy(data, angle, benefit),
+            "copy": build_copy(data, angle, benefit, scene),
             "negative_constraints": negatives,
             "placement_instruction": f"Safe composition: {safe_composition}. {placement_note}",
         }
@@ -583,6 +704,8 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
     angle_count = len({item["hypothesis"]["angle"] for item in creatives})
     layout_count = len({item["visual_plan"]["layout"] for item in creatives})
     combo_count = len({(item["hypothesis"]["angle"], item["visual_plan"]["scene"], item["visual_plan"]["layout"]) for item in creatives})
+    headlines = [item["visual_plan"]["copy"]["headline"] for item in creatives if item["visual_plan"]["copy"]["headline"]]
+    headline_count = len(set(headlines))
     findings = []
     required_angles = min(len(creatives), {"low": 2, "medium": 3, "high": 4}[data["variation_strength"]])
     required_layouts = min(len(creatives), {"low": 1, "medium": 2, "high": 3}[data["variation_strength"]])
@@ -592,6 +715,16 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         findings.append(f"layout diversity below required minimum ({layout_count}/{required_layouts})")
     if data["variation_strength"] == "high" and combo_count != len(creatives):
         findings.append("duplicate angle-scene-layout hypotheses detected")
+    if data["variation_strength"] == "high" and data["text_overlay_mode"] != "none":
+        required_headlines = min(len(creatives), 6 if len(creatives) >= 8 else max(1, (len(creatives) * 3 + 3) // 4))
+        if headline_count < required_headlines:
+            findings.append(f"headline diversity below required minimum ({headline_count}/{required_headlines})")
+    hypothesis_audiences: Dict[Any, set] = {}
+    for item in creatives:
+        key = (item["hypothesis"]["angle"], item["hypothesis"]["core_benefit"], item["visual_plan"]["scene"])
+        hypothesis_audiences.setdefault(key, set()).add(item["hypothesis"]["audience"])
+    if data["variation_strength"] == "high" and any(len(values) > 1 for values in hypothesis_audiences.values()):
+        findings.append("mechanical audience swapping detected for an unchanged hypothesis")
     return {
         "schema_version": "2.0",
         "input_summary": {
@@ -603,7 +736,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         "quality_checks": {
             "pass": not findings and all(item["quality_check"]["pass"] for item in creatives),
             "findings": findings, "distinct_angles": angle_count, "distinct_layouts": layout_count,
-            "distinct_hypothesis_combinations": combo_count,
+            "distinct_hypothesis_combinations": combo_count, "distinct_headlines": headline_count,
         },
     }
 

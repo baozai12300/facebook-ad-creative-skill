@@ -105,6 +105,8 @@ Check differences across:
 
 A background-color swap does not count as a new creative hypothesis.
 
+Also fail a high-variation batch when audience changes are merely index-driven rather than compatible with the angle and scene, or when an eight-creative text-enabled batch has fewer than six distinct headlines.
+
 ## Batch-Level Minimums
 
 ### 4 creatives

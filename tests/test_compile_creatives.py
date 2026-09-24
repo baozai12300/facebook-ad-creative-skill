@@ -199,3 +199,46 @@ def test_copy_density_follows_layout_and_evidence():
     assert len(benefit["callouts"]) == 2 and data["product_description"] not in benefit.values()
     assert offer["support"] == data["offer_info"]
     assert proof["headline"] == data["social_proof"] and proof["support"] == ""
+
+
+def test_phone_case_hypotheses_are_semantically_matched():
+    data = compile_creatives.normalize({"product_name":"MagSafe Clear Case","product_category":"phone case","product_description":"A slim protective case.","benefits":["everyday device protection","easy wireless charging"],"key_features":["MagSafe compatible","raised camera edge"],"generation_count":8})
+    output = compile_creatives.build_creatives(data)
+    by_angle = {item["hypothesis"]["angle"]: item for item in output["creative_plans"]}
+    premium = by_angle["Premium Product Hero"]
+    problem = by_angle["Problem → Solution"]
+    assert premium["hypothesis"]["audience"] == "minimal accessory buyers"
+    assert "studio" in premium["visual_plan"]["scene"] or "minimal desk" in premium["visual_plan"]["scene"]
+    assert "gift" not in premium["hypothesis"]["audience"].lower()
+    assert "wireless charging" not in premium["visual_plan"]["scene"].lower()
+    assert problem["hypothesis"]["audience"] == "device protection shoppers"
+    assert "protection" in problem["visual_plan"]["scene"]
+
+
+def test_skincare_and_usb_hypotheses_match_angle_semantics():
+    skincare = compile_creatives.build_creatives(compile_creatives.normalize({"product_name":"Daily Glow Serum","product_category":"skincare serum","product_description":"A lightweight daily serum.","benefits":["hydrated finish","more even-looking tone"],"key_features":["lightweight texture","10% vitamin C"],"generation_count":8}))
+    skin_by_angle = {item["hypothesis"]["angle"]: item for item in skincare["creative_plans"]}
+    assert skin_by_angle["Feature → Benefit"]["hypothesis"]["audience"] == "ingredient-aware shoppers"
+    assert "texture" in skin_by_angle["Feature → Benefit"]["visual_plan"]["scene"]
+    assert "morning" in skin_by_angle["UGC Real Use"]["visual_plan"]["scene"]
+    assert skin_by_angle["Premium Product Hero"]["hypothesis"]["audience"] == "premium skincare shoppers"
+
+    electronics = compile_creatives.build_creatives(compile_creatives.normalize({"product_name":"USB-C 7-in-1 Hub","product_category":"electronics USB-C hub","product_description":"A compact multi-port hub.","benefits":["reduce cable switching","connect more desk accessories"],"generation_count":8}))
+    usb_by_angle = {item["hypothesis"]["angle"]: item for item in electronics["creative_plans"]}
+    assert usb_by_angle["Problem → Solution"]["hypothesis"]["audience"] == "productivity users"
+    assert "cable-clutter" in usb_by_angle["Problem → Solution"]["visual_plan"]["scene"]
+    assert "connection" in usb_by_angle["Product Demonstration"]["visual_plan"]["scene"]
+
+
+def test_eight_creative_batches_have_distinct_category_specific_headlines():
+    samples = [
+        {"product_name":"MagSafe Clear Case","product_category":"phone case","product_description":"A slim protective case.","benefits":["everyday device protection","easy wireless charging"],"key_features":["MagSafe compatible"],"generation_count":8},
+        {"product_name":"Daily Glow Serum","product_category":"skincare serum","product_description":"A lightweight serum.","benefits":["hydrated finish","more even-looking tone"],"key_features":["lightweight texture"],"generation_count":8},
+        {"product_name":"USB-C Hub","product_category":"electronics USB-C hub","product_description":"A compact multi-port hub.","benefits":["reduce cable switching","connect more desk accessories"],"key_features":["7 ports"],"generation_count":8},
+    ]
+    for sample in samples:
+        output = compile_creatives.build_creatives(compile_creatives.normalize(sample))
+        headlines = [item["visual_plan"]["copy"]["headline"] for item in output["creative_plans"]]
+        assert len(set(headlines)) >= 6
+        assert "Ready for Every Day" not in headlines
+        assert output["quality_checks"]["pass"] is True

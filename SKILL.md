@@ -67,6 +67,8 @@ Audience must change the visual evidence, not just appear as metadata. Translate
 - camera distance
 - copy tone
 
+Choose the audience from the selected angle, category, core benefit, and awareness stage. Do not assign audience or scene by batch index.
+
 Avoid sensitive-trait inference and stereotypes.
 
 ### Step 4 — Creative Angle
@@ -127,6 +129,8 @@ The layout must fit the selected angle. Do not use the same scene-style-layout c
 ### Step 7 — Copy Strategy
 
 Copy is subordinate to the visual concept.
+
+Lifestyle and UGC headlines must be derived from the product category, selected benefit, angle, and use scene. Do not reuse one generic lifestyle headline across unrelated products or across most of a batch.
 
 For static Meta creatives:
 
