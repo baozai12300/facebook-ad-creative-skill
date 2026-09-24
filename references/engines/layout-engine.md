@@ -1,34 +1,135 @@
-# Audience Engine
+# Layout / Composition Engine
 
-The Audience Engine converts product inputs into buyer hypotheses.
+The layout engine converts the selected creative angle into explicit image geometry. Do not use abstract layout names without placement instructions.
 
-## Required Outputs
+## Core Principle
 
-- primary audience
-- secondary audience
-- interest cues
-- pain points
-- desires
-- purchase motivations
-- awareness stage
-- lifestyle tags
-- consumption psychology
+One layout should make the dominant message obvious in under one second on a mobile feed.
 
-## Rules
+Every layout definition must specify:
 
-- For cold audiences, make the scene and problem obvious in one glance.
-- For warm audiences, emphasize comparison, proof, feature clarity, or use cases.
-- For hot audiences, emphasize offer, urgency, bundle value, guarantees, or final objection handling.
-- If target audiences are missing, infer them from category, benefits, price positioning, and use context.
-- Avoid sensitive personal attributes and avoid implying that the viewer has a protected trait.
+- `product_anchor`: where the product sits
+- `product_scale`: approximate percentage of canvas height/area
+- `headline_zone`: where text may appear
+- `support_zone`: optional proof/callout area
+- `negative_space`: where the image must stay quiet
+- `visual_flow`: first → second → third focal point
+- `safe_margin`: minimum edge clearance
 
-## Default Audience Patterns
+## Layout Patterns
 
-- Beauty: skincare beginners, ingredient-aware buyers, busy professionals, gift buyers
-- Pets: pet parents, small apartment owners, senior pet owners, comfort-focused buyers
-- Home: renters, new homeowners, organization seekers, decor-conscious buyers
-- Kitchen: meal prep users, home cooks, busy families, gift buyers
-- Apparel: style explorers, comfort seekers, occasion shoppers, trend-aware buyers
-- Electronics: productivity users, commuters, creators, tech gift buyers
-- Health: wellness shoppers, routine builders, active lifestyle buyers; avoid medical claims
-- Gifts: last-minute gift buyers, relationship-based shoppers, holiday shoppers
+### L1 — Product Hero
+Best for: premium hero, feature clarity, retargeting.
+
+- Product centered or slightly offset, 48–68% of canvas height
+- Clean background with strong tonal separation
+- Headline in upper-left or upper-center safe zone
+- Optional one support line below headline
+- No decorative cards unless they serve the message
+
+### L2 — Benefit Focus
+Best for: feature → benefit, problem solution.
+
+- Product occupies 45–60% of canvas
+- 1–2 short callouts placed around product without touching silhouette
+- Clear whitespace between callouts and product
+- Main headline above or beside product
+- Avoid more than 2 callout clusters on mobile
+
+### L3 — Problem → Solution Split
+Best for: pain solution, old way vs new way.
+
+- Two visual regions with strong contrast
+- Problem side visually simpler and less desirable
+- Solution/product side brighter and product-dominant
+- Product must not be split across the divider
+- Copy limited to one short phrase per side when used
+
+### L4 — Lifestyle Story
+Best for: emotional benefit, identity, use moment.
+
+- Product used naturally in a believable environment
+- Product remains clearly identifiable, ideally 30–45% of frame prominence
+- Person/action can lead, but product cannot disappear
+- Headline uses available negative space rather than covering face/product
+
+### L5 — UGC Native Static
+Best for: trust, cold audience, testimonial-style framing.
+
+- Phone-shot realism, imperfect-but-believable framing
+- Product in hand / on counter / in use
+- Minimal overlay: usually headline only
+- Avoid polished studio symmetry
+- Never fake comments, likes, sponsored labels, or Meta UI
+
+### L6 — Review / Proof Card
+Best for: real supplied review, verified proof.
+
+- Product remains the primary object
+- Proof card is secondary, 18–28% of canvas
+- Quote must be short and supplied by user
+- Avoid fabricated avatars, ratings, or review counts
+
+### L7 — Offer / Value
+Best for: provided discount, bundle, launch, hot audience.
+
+- Product large and central
+- Offer chip or price zone is visually strong but smaller than product
+- Headline states value clearly
+- CTA button inside the image is optional, not mandatory
+- Never invent urgency or discount data
+
+### L8 — Comparison
+Best for: competitor-free comparison, old/new workflow, feature contrast.
+
+- Use two clear columns or top/bottom comparison
+- Prefer visual attributes over dense tables
+- Product on the preferred side should be dominant
+- Do not name competitors unless user supplied and comparison is accurate
+
+### L9 — Minimal Editorial
+Best for: premium positioning, design-led products.
+
+- 55–75% negative space
+- Product 35–55% canvas prominence
+- Controlled shadow, texture, and material detail
+- Very little or no on-image copy
+
+### L10 — Infographic Lite
+Best for: technical or feature-heavy products.
+
+- Product central, 40–55% canvas
+- Maximum 2–3 concise benefit labels
+- Use lines/arrows sparingly
+- Labels must describe supplied facts only
+- Avoid dense specification sheets
+
+## Layout Selection Rules
+
+Choose layout from the angle, not randomly:
+
+- Product clarity / premium → L1 or L9
+- Feature benefit → L2 or L10
+- Problem solution → L3
+- Lifestyle / identity → L4
+- UGC / trust → L5
+- Social proof → L6
+- Offer / bundle → L7
+- Comparison / objection → L8
+
+If the selected layout fights the angle, change the layout before writing the prompt.
+
+## Batch Diversity
+
+In a four-image batch, use at least three structurally different layout families.
+
+In an eight-image batch, do not repeat the same layout more than twice unless the user explicitly requests controlled A/B variants.
+
+## Text Rules
+
+- Headline should normally occupy one visual zone only
+- Keep text away from product silhouette and faces
+- Use natural line breaks
+- Avoid tiny captions
+- A CTA inside the image is optional
+- Treat text density as a readability decision, not a platform-policy quota
