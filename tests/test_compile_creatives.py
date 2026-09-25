@@ -431,3 +431,72 @@ def test_duplicate_structural_layouts_are_rejected():
 def test_layout_salience_keeps_hard_claim_gate_unchanged():
     data = compile_creatives.normalize({"product_name":"Geometric Sling Bag","product_category":"sling bag","product_description":"Product image only."})
     assert compile_creatives.unsupported_hard_copy_findings(data, {"headline":"WATERPROOF","support":"","callouts":[],"cta":""})
+
+
+def test_v4_editorial_poster_compiles_multilevel_typography():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L11 Editorial Poster")
+    typography = item["visual_plan"]["typography_structure"]
+    assert typography["headline_scale"] == "oversized"
+    assert typography["headline_line_break_mode"] == "stacked"
+    assert typography["support_line"] and typography["micro_label"] and typography["caption"]
+    assert all(value in item["render_prompt"] for value in (typography["headline"], typography["support_line"], typography["micro_label"], typography["caption"]))
+
+
+def test_v4_asymmetric_grid_uses_separate_text_zones():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L13 Asymmetric Grid")
+    typography = item["visual_plan"]["typography_structure"]
+    assert typography["interaction_mode"] == "panel-contained"
+    assert typography["support_line"] and typography["index_label"]
+    assert "separate lower text panel" in item["render_prompt"]
+
+
+def test_v4_product_hero_support_is_not_overloaded():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L1 Product Hero")
+    check = item["quality_check"]["typography_density_check"]
+    assert item["visual_plan"]["typography_structure"]["support_line"]
+    assert 2 <= check["element_count"] <= 3 and check["pass"] is True
+
+
+def test_v4_ugc_native_stays_typographically_simple():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L5 UGC Native Static")
+    typography = item["visual_plan"]["typography_structure"]
+    assert typography["headline"] and typography["support_line"]
+    assert not typography["micro_label"] and not typography["caption"] and not typography["index_label"]
+    assert item["quality_check"]["typography_density_check"]["element_count"] == 2
+
+
+def test_v4_detail_crop_includes_secondary_caption():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L12 Detail Crop")
+    assert item["visual_plan"]["typography_structure"]["caption"].startswith("Close Look /")
+    assert item["visual_plan"]["typography_structure"]["caption"] in item["render_prompt"]
+
+
+def test_v4_typography_density_rejects_overload():
+    structure = {key:"x" for key in ("headline","support_line","micro_label","caption","index_label")}
+    check = compile_creatives.typography_density_check(structure, "standard")
+    assert check["pass"] is False and check["element_count"] == 5
+
+
+def test_v4_typography_salience_rejects_headline_only_collapse():
+    output = _layout_salience_sample()
+    item = next(x for x in output["creative_plans"] if x["visual_plan"]["layout"] == "L11 Editorial Poster")
+    data = compile_creatives.normalize({"product_name":"Bag","product_category":"sling bag","product_description":"Image only."})
+    angle = {"name":"Lifestyle Context","kind":"lifestyle","layout":"poster_editorial","style":"lifestyle_natural","scene":"context"}
+    layout_values = compile_creatives.LAYOUT_PROFILES["poster_editorial"]
+    layout = dict(zip(["name","product_position","headline_zone","support_zone","negative_space","visual_flow","typography","graphic_structure"], layout_values))
+    structure = dict(item["visual_plan"]["typography_structure"])
+    structure.update({"support_line":"","micro_label":"","caption":"","index_label":""})
+    plan = {"layout_key":"poster_editorial","typography_structure":structure}
+    check = compile_creatives.typography_salience_check(plan, 'TYPOGRAPHY: Render headline exactly "MOVE WITH STYLE".')
+    assert check["pass"] is False
+
+
+def test_v4_headline_pattern_diversity_and_prompt_budget():
+    for category in ("sling bag / crossbody bag", "hair dryer"):
+        output = _layout_salience_sample(category)
+        assert output["quality_checks"]["distinct_headline_patterns"] >= 3
+        assert max(item["quality_check"]["prompt_word_count"] for item in output["creative_plans"]) <= 240
+        assert all(item["quality_check"]["typography_salience_check"]["pass"] for item in output["creative_plans"])
+        if category == "hair dryer":
+            typography_text = " ".join(str(item["visual_plan"]["typography_structure"]) for item in output["creative_plans"]).lower()
+            assert "commute / weekend" not in typography_text

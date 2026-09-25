@@ -151,6 +151,8 @@ The layout must fit the selected angle. Do not use the same scene-style-layout c
 
 Copy is subordinate to the visual concept.
 
+Build a layout-specific typography system, not a headline-only overlay. Use `LAYOUT_TYPOGRAPHY_RULES` to define headline scale/style/position/line breaks plus the smallest useful combination of support line, micro-label, caption, or index. Default to 2–4 textual elements, keep UGC simple, and give Editorial Poster and Asymmetric Grid explicit multi-level hierarchy. Secondary wording must remain soft-benefit, creative/lifestyle, evidence-safe neutral phrasing, or a visible category/style descriptor.
+
 Classify copy before rendering:
 
 1. **Hard claim** — specifications, measurable performance, certifications, protection, exact materials/capacity, comparison, proof, or offer; requires matching evidence.
@@ -173,6 +175,8 @@ Do not force CTA buttons into every image. Meta's system CTA exists outside the 
 Treat “20% text” only as a visual-density guideline, not a Meta policy rule.
 
 Use layout-driven typography where appropriate: oversized headlines, small captions, vertical micro-text, split hierarchy, numbered non-claim labels, detail captions, and poster-style composition. Functional callouts still require evidence.
+
+Compile every populated typography field into the render prompt with exact wording, location, scale contrast, line-break mode, orientation, interaction mode, and alignment to panels, crop windows, rules, grids, or negative space. Reject a rich internal structure if the render prompt collapses it to one headline.
 
 When exact text rendering is unreliable for the chosen model, prefer a text-light visual or generate the visual first and add typography in the product editor.
 

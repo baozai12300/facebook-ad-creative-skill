@@ -3,7 +3,7 @@
   "$id": "https://example.com/creative-preview-plan.schema.json",
   "title": "CreativePreviewPlan",
   "type": "object",
-  "required": ["creative_id", "title", "status", "strategy", "visual", "copy", "placement", "evidence", "render_prompt", "quality"],
+  "required": ["creative_id", "title", "status", "strategy", "visual", "copy", "placement", "evidence", "render_prompt", "quality", "typography_salience_check", "quality_pass"],
   "properties": {
     "creative_id": { "type": "string" },
     "title": { "type": "string" },
@@ -27,11 +27,13 @@
         "composition_geometry": { "type": "string" }
       }
     },
-    "copy": { "type": "object", "required": ["headline", "support"], "properties": { "headline": { "type": "string" }, "support": { "type": "string" } } },
+    "copy": { "type": "object", "required": ["headline", "support", "support_line", "micro_label", "caption", "index_label"], "properties": { "headline": { "type": "string" }, "support": { "type": "string" }, "support_line": { "type": "string" }, "micro_label": { "type": "string" }, "caption": { "type": "string" }, "index_label": { "type": "string" } } },
     "placement": { "type": "object", "required": ["platform", "placement", "ratio"], "properties": { "platform": { "type": "string" }, "placement": { "type": "string" }, "ratio": { "type": "string" } } },
     "evidence": { "type": "object", "required": ["claims_used", "sources", "copy_tiers"], "properties": { "claims_used": { "type": "array", "items": { "type": "string" } }, "sources": { "type": "array", "items": { "type": "string" } }, "copy_tiers": { "type": "object" } } },
     "render_prompt": { "type": "string", "minLength": 1 },
-    "quality": { "type": "object" }
+    "quality": { "type": "object" },
+    "typography_salience_check": { "type": "object" },
+    "quality_pass": { "type": "boolean" }
   },
   "additionalProperties": false
 }

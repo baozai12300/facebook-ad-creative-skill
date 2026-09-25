@@ -74,6 +74,14 @@ For text-enabled creatives:
 
 If the model is poorly suited to exact typography, reduce copy or route typography to a post-generation editor.
 
+### 6a. Typography Hierarchy
+
+For text-enabled creatives, normally require 2–4 elements across headline, support, micro-label, caption, and index. Reject five simultaneous layers as overload unless a user explicitly supplies a dense editorial system.
+
+The final render prompt must contain every populated typography element plus explicit scale contrast and structural alignment. Editorial Poster requires a headline and at least two secondary elements. Other core layouts require the headline plus at least one secondary element. UGC should normally stop at headline plus support.
+
+For high-variation batches of five or more, require at least three headline-pattern families, such as stacked phrase, motion/lifestyle phrase, noun-led editorial title, slash form, or short bold phrase.
+
 ### 7. Placement Fit
 
 Pass only if:

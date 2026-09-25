@@ -38,7 +38,17 @@ Required signatures include:
 - `minimal_art_directed`: off-center product, restrained type, 55–70% deliberate empty space
 - `polished_human_lifestyle`: action and environment lead while product remains 35–45% prominent
 
-`typography_structure` must explicitly contain headline, scale, position, alignment, support, micro-label, orientation, line breaks, and product/type interaction. Graphic elements may include panels, crop windows, grids, thin rules, texture blocks, shapes, and non-claim number labels. Never use fake badges, ratings, certifications, offers, or interface chrome.
+`typography_structure` must explicitly support headline scale/style/position/line breaks, support line and position, micro-label and position, caption and position, index label and position, alignment, orientation, and interaction mode. Populate only the useful fields; normally use 2–4 text elements. Graphic elements may include panels, crop windows, grids, thin rules, texture blocks, shapes, and non-claim number labels. Never use fake badges, ratings, certifications, offers, or interface chrome.
+
+## Layout Typography Rules
+
+- Product Hero: strong clean headline, short support, optional edge label; large negative space
+- Editorial Poster: oversized stacked headline, visible scale contrast, micro-label, caption, thin-rule alignment; mixed orientation is allowed
+- Asymmetric Grid: headline in a dedicated panel, support in another zone, optional corner index; type participates in panel geometry
+- Detail Crop: medium feature-led title, subtle visible-detail caption, crop-edge label; macro remains dominant
+- UGC Native: headline plus one natural support line; no magazine-cover system
+
+Micro-labels may use neutral collection-like wording such as `CITY EDIT / 01`, `DAILY CARE EDIT`, or `CLOSE LOOK`. They must not imply ranking, proof, certification, performance, or unprovided product facts.
 
 ## Layout Patterns
 
