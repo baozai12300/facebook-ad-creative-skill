@@ -42,6 +42,18 @@ Pass only if:
 - visual flow is intentional
 - important elements respect placement-safe composition
 
+### 4a. Layout Salience
+
+Pass only when the layout's defining geometry appears in the final render prompt:
+
+- Asymmetric Grid: at least three unequal product/detail/type zones and an explicit rejection of centered-poster geometry
+- Detail Crop: one 35–60% visible-detail macro plus a separate recognizable complete product view
+- Editorial Poster: oversized headline, micro-label, caption, and deliberate hierarchy
+- UGC Native: believable candid use framing without a polished editorial system
+- Product Hero: one dominant 45–70% complete product, simple field, and no collage
+
+Fail if the layout name changes but product scale, anchor, text position, and structural geometry remain effectively identical.
+
 ### 5. Copy Accuracy
 
 Pass only if:
@@ -106,6 +118,8 @@ Check differences across:
 A background-color swap does not count as a new creative hypothesis.
 
 Also fail a high-variation batch when audience changes are merely index-driven rather than compatible with the angle and scene, or when an eight-creative text-enabled batch has fewer than six distinct headlines.
+
+For a high-variation batch of five, require at least four distinct `structural_signature` values and reject duplicate structural fingerprints.
 
 ## Batch-Level Minimums
 

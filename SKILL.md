@@ -131,6 +131,8 @@ Choose scene and style from product use, audience moment, price positioning, and
 
 ### Step 6 — Composition / Layout
 
+Select a layout and compile its concrete `LAYOUT_SIGNATURE`: spatial zones, product scale/position, crop behavior, text zones, negative space, typography hierarchy, graphic structure, and secondary element. A layout name without model-facing geometry is invalid. For high-variation five-image batches, require at least four unique structural signatures and reject duplicate structural fingerprints.
+
 Read `references/engines/layout-engine.md`.
 
 Select one layout pattern and define geometry before writing the prompt:

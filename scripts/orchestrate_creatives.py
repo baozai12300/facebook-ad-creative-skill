@@ -150,7 +150,10 @@ def create_creative_preview_plans(product_analysis: Dict[str, Any], campaign_set
                 "lighting": visual["visual_dna"]["lighting"],
                 "visual_dna": visual["visual_dna"]["name"],
                 "typography": visual.get("typography", ""),
-                "graphic_structure": visual.get("graphic_structure", ""),
+                "graphic_structure": visual.get("graphic_structure_details", visual.get("graphic_structure", "")),
+                "typography_structure": visual.get("typography_structure", {}),
+                "structural_signature": visual.get("structural_signature", ""),
+                "composition_geometry": visual.get("composition_geometry", ""),
             },
             "copy": {"headline": copy_plan["headline"], "support": copy_plan["support"]},
             "placement": {

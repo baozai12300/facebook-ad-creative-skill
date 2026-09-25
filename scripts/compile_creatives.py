@@ -16,15 +16,14 @@ from typing import Any, Dict, List
 
 
 DEFAULT_NEGATIVES = [
-    "no cluttered composition",
+    "no clutter",
     "no tiny product",
-    "no excessive text",
-    "no unreadable typography",
-    "no unrealistic anatomy",
-    "no over-processed AI look",
+    "no excessive or unreadable text",
+    "no anatomy errors",
+    "no AI artifacts",
     "no unrelated props",
     "no repeated batch template",
-    "no unsupported claims, specs, proof, offers, or transformations",
+    "no unsupported claims/specs/proof/offers/transformations",
 ]
 
 CATEGORY_AUDIENCES = {
@@ -67,6 +66,76 @@ LAYOUT_PROFILES = {
     "poster_editorial": ("L11 Editorial Poster", "off-center and large, 48–62% of canvas height", "oversized type zone behind or beside product", "one small caption", "one open corner", "headline → silhouette → caption", "oversized poster type with strong scale contrast", "shapes, texture block, thin rules, asymmetric crop"),
     "detail_crop": ("L12 Detail Crop", "one product close-up plus one complete product view", "edge-aligned headline zone", "one detail caption", "between crop and full view", "detail → full product → headline", "compact headline with vertical detail label", "split crop, magnified material detail, numbered non-claim marker"),
     "asymmetric_grid": ("L13 Asymmetric Grid", "anchored in one large grid cell, 42–58% of canvas height", "contrasting grid cell", "one small lifestyle caption", "one deliberately empty cell", "headline → product → scene detail", "bold headline plus small editorial caption", "uneven grid, texture blocks, thin rules, non-claim numeric index"),
+}
+
+# Concrete, model-facing geometry. A layout name is not considered implemented
+# unless its signature survives into the render prompt and quality gate.
+LAYOUT_SIGNATURES = {
+    "product_hero": {
+        "signature": "hero_product_first", "zone_count": 2,
+        "product_scale": "45–70% of canvas height", "product_position": "center-right",
+        "image_crop": "complete product; no collage or competing crop",
+        "text_zones": "one primary headline zone in the upper-left and one optional caption directly below",
+        "negative_space": "clean upper-left field around the headline",
+        "secondary_visual_element": "one restrained thin rule or tonal shape only",
+        "geometry": "Use one dominant complete product at center-right, 45–70% of canvas height. Keep a simple background and a clean upper-left headline field. No collage; secondary graphics stay minimal.",
+    },
+    "poster_editorial": {
+        "signature": "editorial_type_led", "zone_count": 3,
+        "product_scale": "48–62% of canvas height", "product_position": "off-center, interacting with type",
+        "image_crop": "deliberate poster crop while preserving recognition",
+        "text_zones": "oversized 2–3 line headline field, separate micro-label, and small caption zone",
+        "negative_space": "one editorially open corner",
+        "secondary_visual_element": "cropped letters, category label, thin rules, and one texture block",
+        "geometry": "Build a type-led editorial poster: oversized 2–3 line headline, separate micro-label, small caption, deliberate alignment and line breaks. Place the product off-center so it interacts with type; keep one open corner.",
+    },
+    "detail_crop": {
+        "signature": "detail_macro_plus_full", "zone_count": 3,
+        "product_scale": "recognizable full view at 30–45%; macro crop fills 35–60%",
+        "product_position": "full product in one zone, visible-detail macro in another",
+        "image_crop": "one macro visible-detail crop plus one complete product view",
+        "text_zones": "compact edge-aligned headline and one visual-detail label",
+        "negative_space": "clear separation between macro and full view",
+        "secondary_visual_element": "crop window, divider rule, and non-claim index",
+        "geometry": "Create a two-view detail composition: a macro crop of a visibly confirmed detail filling 35–60% of the canvas plus a separate recognizable complete product view. Divide the views clearly; never imply hidden functionality.",
+    },
+    "ugc_native": {
+        "signature": "human_native_use", "zone_count": 2,
+        "product_scale": "recognizable at mobile size within natural use", "product_position": "in hand or in active everyday context",
+        "image_crop": "candid phone-shot crop with believable imperfection",
+        "text_zones": "one short conversational headline in available space",
+        "negative_space": "natural environmental breathing room",
+        "secondary_visual_element": "real hand, person interaction, or contextual prop; no editorial system",
+        "geometry": "Frame a believable candid phone-shot moment with the product naturally handled or used. Keep environmental context visible, avoid studio symmetry, poster typography, grids, cards, fake UI, and polished editorial ornament.",
+    },
+    "minimal_editorial": {
+        "signature": "minimal_art_directed", "zone_count": 2,
+        "product_scale": "35–52% of canvas height", "product_position": "off-center or architectural lower anchor",
+        "image_crop": "unusual controlled crop with full identity legible",
+        "text_zones": "small restrained headline and optional micro-caption",
+        "negative_space": "55–70% deliberate empty space",
+        "secondary_visual_element": "architectural shadow or one fine rule",
+        "geometry": "Use an art-directed off-center product placement with 55–70% deliberate empty space, restrained small type, architectural shadow, and an unusual controlled crop. Do not center it like a standard hero.",
+    },
+    "lifestyle_story": {
+        "signature": "polished_human_lifestyle", "zone_count": 2,
+        "product_scale": "35–45% visual prominence", "product_position": "within a polished action-led environment",
+        "image_crop": "contextual medium shot or use close-up",
+        "text_zones": "headline in environmental negative space with optional small caption",
+        "negative_space": "scene-derived copy space away from face and product",
+        "secondary_visual_element": "person action or meaningful environmental cue",
+        "geometry": "Let a polished environment and visible action carry the story while the product remains 35–45% prominent. Place copy only in natural scene negative space; keep this cinematic and composed, not casual UGC.",
+    },
+    "asymmetric_grid": {
+        "signature": "grid_multi_panel", "zone_count": 3,
+        "product_scale": "dominant full view in largest panel; secondary detail crop in smaller panel",
+        "product_position": "largest panel on one side, deliberately off-center",
+        "image_crop": "complete product plus secondary visible-detail crop",
+        "text_zones": "dedicated typography panel separate from both image panels",
+        "negative_space": "one narrow or empty balancing cell",
+        "secondary_visual_element": "unequal panels, thin rules, texture block, non-claim index",
+        "geometry": "Create a clearly asymmetric multi-panel composition. Use at least three unequal visual zones rather than a centered poster: the largest panel holds one dominant complete product view, a smaller panel holds one secondary visible-detail crop, and typography occupies a separate structured zone.",
+    },
 }
 
 VISUAL_DNA = {
@@ -832,8 +901,8 @@ def product_identity_instruction(data: Dict[str, Any]) -> str:
     if data["reference_image_visual_facts"] and not data["product_identity_constraints"]:
         visible = " Visible reference facts only: " + ", ".join(data["reference_image_visual_facts"]) + "."
     if data["reference_image"]:
-        return f"Preserve the supplied product reference exactly—lock {locked}. Do not redesign the SKU.{visible}"
-    return f"Preserve the described product identity—keep {locked} consistent. Do not invent a different SKU or packaging.{visible}"
+        return f"Match the reference exactly: {locked}. Never redesign the SKU.{visible}"
+    return f"Keep identity: {locked}. Never invent another SKU or package.{visible}"
 
 
 def text_instruction(data: Dict[str, Any], copy: Dict[str, Any], headline_zone: str) -> str:
@@ -850,18 +919,74 @@ def text_instruction(data: Dict[str, Any], copy: Dict[str, Any], headline_zone: 
     return "; ".join(parts) + "."
 
 
+def layout_signature(layout_key: str, layout: Dict[str, Any], angle: Dict[str, Any]) -> Dict[str, Any]:
+    """Return concrete geometry for every layout, with a safe structured fallback."""
+    if layout_key in LAYOUT_SIGNATURES:
+        signature = dict(LAYOUT_SIGNATURES[layout_key])
+    else:
+        signature = {
+            "signature": f"structured_{layout_key}", "zone_count": 2,
+            "product_scale": layout["product_position"], "product_position": layout["product_position"],
+            "image_crop": "one clear complete product view",
+            "text_zones": f"headline in {layout['headline_zone']}; support in {layout['support_zone']}",
+            "negative_space": layout["negative_space"],
+            "secondary_visual_element": layout["graphic_structure"],
+            "geometry": f"Use a clear two-zone composition. Product {layout['product_position']}. Put the headline in {layout['headline_zone']} and support in {layout['support_zone']}; keep {layout['negative_space']} quiet.",
+        }
+    if angle["name"] == "Gift Presentation" and layout_key == "product_hero":
+        signature.update({
+            "signature": "gift_framed_presentation", "zone_count": 3,
+            "product_position": "center inside an open presentation frame",
+            "image_crop": "complete product plus visible unboxing context",
+            "text_zones": "short headline above; small gift-context caption below",
+            "secondary_visual_element": "open box or wrapping plane without offer badges",
+            "geometry": "Use a three-zone gift presentation: complete product centered in an open presentation frame, subtle unboxing context below, and a separate short headline above. Do not use offer badges or claims.",
+        })
+    return signature
+
+
+def visible_detail(data: Dict[str, Any]) -> str:
+    facts = data.get("reference_image_visual_facts", [])
+    preferred = ("pattern", "zip", "display", "grille", "button", "texture", "stitch", "control", "finish", "strap")
+    return next((fact for fact in facts if any(word in fact.lower() for word in preferred)), facts[0] if facts else "a visibly confirmed surface or form detail")
+
+
+def build_typography_structure(layout_key: str, copy: Dict[str, Any]) -> Dict[str, str]:
+    structures = {
+        "poster_editorial": ("oversized", "separate poster field", "edge-aligned", "2–3 deliberate lines", "small category-style label", "horizontal with optional vertical micro-label", "product may overlap decorative letterforms without hiding copy"),
+        "asymmetric_grid": ("bold large", "dedicated grid panel", "left-aligned", "short stacked lines", "non-claim index", "horizontal", "type stays separate from image panels"),
+        "detail_crop": ("compact medium", "edge-aligned text zone", "left-aligned", "one or two lines", "visible-detail label", "horizontal with vertical micro-label", "type anchors the divider between macro and full view"),
+        "ugc_native": ("conversational medium", "natural empty scene area", "informal left alignment", "one short line", "", "horizontal", "no editorial type system or decorative overlap"),
+        "minimal_editorial": ("restrained small", "within large negative space", "precise off-center alignment", "one or two lines", "small category caption", "horizontal", "type remains quiet and does not compete with product"),
+        "product_hero": ("large primary", "upper-left field", "left-aligned", "one or two lines", "", "horizontal", "single dominant headline hierarchy"),
+        "lifestyle_story": ("large but scene-aware", "environmental negative space", "aligned to scene geometry", "one or two lines", "optional small caption", "horizontal", "type follows the action without covering person or product"),
+    }
+    scale, position, alignment, line_breaks, micro_label, orientation, interaction = structures.get(
+        layout_key, ("clear primary", "designated headline zone", "left-aligned", "one or two lines", "", "horizontal", "type stays clear of product silhouette")
+    )
+    return {"headline": copy.get("headline", ""), "scale": scale, "position": position, "alignment": alignment,
+            "line_breaks": line_breaks, "support": copy.get("support", ""), "micro_label": micro_label,
+            "orientation": orientation, "interaction": interaction}
+
+
+def build_graphic_structure(layout_key: str, signature: Dict[str, Any]) -> Dict[str, Any]:
+    return {"system": signature["signature"], "zones": signature["zone_count"],
+            "elements": signature["secondary_visual_element"],
+            "restrictions": "no fake badges, proof marks, certification marks, offer marks, interface chrome, or functional callouts without evidence"}
+
+
 def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
     layout = plan["layout_profile"]
     dna = plan["visual_dna"]
     negatives = plan["negative_constraints"]
     return "\n\n".join([
-        f"Create a {data['aspect_ratio']} Meta ecommerce ad image for {data['placement'].replace('_', ' ')}.",
+        f"Create a {data['aspect_ratio']} Meta {data['placement'].replace('_', ' ')} ad.",
         f"PRODUCT: {product_identity_instruction(data)}",
-        f"SCENE: {plan['scene']}; {plan['audience_scene_bridge']['visible_behavior']}. Props stay relevant and secondary.",
+        f"SCENE: {plan['scene']}; {plan['audience_scene_bridge']['visible_behavior']}.",
         f"PLACEMENT: {plan['placement_instruction']}",
-        f"COMPOSITION: Product {layout['product_position']}; headline {layout['headline_zone']}; support {layout['support_zone']}; keep {layout['negative_space']} uncluttered; flow {layout['visual_flow']}.",
-        f"DESIGN: {layout['typography']}; {layout['graphic_structure']}.",
-        f"LOOK: {dna['lighting']}. {dna['camera_language']}. {dna['background_character']}. {dna['color_mood']}. {dna['material_treatment']}. {dna['graphic_treatment']}.",
+        f"COMPOSITION: {plan['composition_geometry']} Visible detail for any crop: {plan['visible_detail']}.",
+        f"DESIGN: Type—{plan['typography_structure']['scale']}, {plan['typography_structure']['position']}, {plan['typography_structure']['alignment']}, {plan['typography_structure']['line_breaks']}; {plan['typography_structure']['interaction']}. Graphics—{plan['graphic_structure']['elements']}. No fake badge/proof/certification/offer marks, UI, or unsupported functional callouts.",
+        f"LOOK: {dna['lighting']}; {dna['camera_language']}; {dna['color_mood']}.",
         f"TEXT: {text_instruction(data, plan['copy'], layout['headline_zone'])}",
         "AVOID: " + "; ".join(negatives) + ".",
     ])
@@ -917,6 +1042,43 @@ def unsupported_claim_findings(data: Dict[str, Any], prompt: str) -> List[str]:
     return list(dict.fromkeys(findings))
 
 
+def layout_salience_check(plan: Dict[str, Any], prompt: str) -> Dict[str, Any]:
+    layout_key = plan["layout_key"]
+    signature = plan["layout_signature"]
+    lowered = prompt.lower()
+    findings = []
+    if layout_key == "asymmetric_grid":
+        if signature["zone_count"] < 3 or not all(term in lowered for term in ("three unequal", "dominant complete product", "typography occupies a separate")):
+            findings.append("asymmetric grid lacks three unequal product/detail/type zones")
+        if "centered poster" not in lowered:
+            findings.append("asymmetric grid does not explicitly reject centered-poster geometry")
+    elif layout_key == "detail_crop" and not all(term in lowered for term in ("macro crop", "35–60%", "complete product view")):
+        findings.append("detail crop lacks both a 35–60% macro and a complete product view")
+    elif layout_key == "poster_editorial" and not all(term in lowered for term in ("oversized", "micro-label", "small caption")):
+        findings.append("editorial poster lacks multi-level typography hierarchy")
+    elif layout_key == "ugc_native" and not all(term in lowered for term in ("candid phone-shot", "naturally handled", "no editorial type system")):
+        findings.append("UGC layout lacks believable native-use framing")
+    elif layout_key == "product_hero" and signature["signature"] == "hero_product_first" and not all(term in lowered for term in ("one dominant complete product", "45–70%", "no collage")):
+        findings.append("product hero lacks product-first scale and single-view hierarchy")
+    return {"pass": not findings, "findings": findings, "structural_signature": signature["signature"]}
+
+
+def structural_diversity_findings(creatives: List[Dict[str, Any]], variation_strength: str) -> List[str]:
+    if variation_strength != "high" or len(creatives) < 5:
+        return []
+    signatures = [item["visual_plan"]["structural_signature"] for item in creatives]
+    fingerprints = [(
+        item["visual_plan"]["structural_signature"], item["visual_plan"]["composition_geometry"],
+        item["visual_plan"]["typography_structure"]["position"]
+    ) for item in creatives]
+    findings = []
+    if len(set(signatures)) < 4:
+        findings.append(f"structural signature diversity below required minimum ({len(set(signatures))}/4)")
+    if len(creatives) == 5 and len(set(fingerprints)) != len(creatives):
+        findings.append("duplicate structural layouts detected in five-creative batch")
+    return findings
+
+
 def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dict[str, Any]:
     findings = []
     word_count = len(prompt.split())
@@ -948,12 +1110,15 @@ def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dic
     if plan["scene"] != expected_scene:
         findings.append("scene is not compatible with the selected hypothesis")
     findings.extend(unsupported_claim_findings(data, prompt))
+    salience = layout_salience_check(plan, prompt)
+    findings.extend(salience["findings"])
     return {
         "pass": not findings,
         "findings": findings,
         "revised": False,
         "prompt_word_count": word_count,
-        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "copy tier classification", "hard claim evidence", "creative copy freedom", "placement safe-zone compiled", "unsupported claim check", "numeric claim source check", "before/after evidence check", "proof source check", "offer source check", "spec source check", "compatibility claim check", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
+        "layout_salience_check": salience,
+        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "layout salience", "copy tier classification", "hard claim evidence", "creative copy freedom", "placement safe-zone compiled", "unsupported claim check", "numeric claim source check", "before/after evidence check", "proof source check", "offer source check", "spec source check", "compatibility claim check", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
     }
 
 
@@ -980,6 +1145,9 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         dna = dict(zip(["name", "lighting", "camera_language", "background_character", "color_mood", "material_treatment", "graphic_treatment"], dna_values))
         bridge = build_audience_scene_bridge(data, audience, scene, benefit, index)
         copy = build_copy(data, angle, benefit, scene)
+        signature = layout_signature(angle["layout"], layout, angle)
+        typography_structure = build_typography_structure(angle["layout"], copy)
+        graphic_structure = build_graphic_structure(angle["layout"], signature)
         copy_tiers = classify_copy(data, copy)
         evidence = collect_used_claims(data, angle, benefit, copy)
         plan = {
@@ -988,8 +1156,14 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
             "benefit": benefit,
             "audience": audience,
             "scene": scene,
+            "layout_key": angle["layout"],
             "audience_scene_bridge": bridge,
             "layout_profile": layout,
+            "layout_signature": signature,
+            "composition_geometry": signature["geometry"],
+            "typography_structure": typography_structure,
+            "graphic_structure": graphic_structure,
+            "visible_detail": visible_detail(data),
             "visual_dna": dna,
             "copy": copy,
             "copy_tiers": copy_tiers,
@@ -1028,6 +1202,10 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                 "headline_zone": layout["headline_zone"], "support_zone": layout["support_zone"],
                 "negative_space": layout["negative_space"], "visual_flow": layout["visual_flow"],
                 "typography": layout["typography"], "graphic_structure": layout["graphic_structure"],
+                "structural_signature": signature["signature"],
+                "composition_geometry": signature["geometry"],
+                "typography_structure": typography_structure,
+                "graphic_structure_details": graphic_structure,
                 "text_mode": data["text_overlay_mode"], "copy": plan["copy"], "copy_tiers": copy_tiers,
             },
             "render_prompt": prompt,
@@ -1051,6 +1229,8 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
     combo_count = len({(item["hypothesis"]["angle"], item["visual_plan"]["scene"], item["visual_plan"]["layout"]) for item in creatives})
     headlines = [item["visual_plan"]["copy"]["headline"] for item in creatives if item["visual_plan"]["copy"]["headline"]]
     headline_count = len(set(headlines))
+    structural_signatures = [item["visual_plan"]["structural_signature"] for item in creatives]
+    signature_count = len(set(structural_signatures))
     findings = []
     required_angles = min(len(creatives), {"low": 2, "medium": 3, "high": 4}[data["variation_strength"]])
     required_layouts = min(len(creatives), {"low": 1, "medium": 2, "high": 3}[data["variation_strength"]])
@@ -1060,6 +1240,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         findings.append(f"layout diversity below required minimum ({layout_count}/{required_layouts})")
     if data["variation_strength"] == "high" and combo_count != len(creatives):
         findings.append("duplicate angle-scene-layout hypotheses detected")
+    findings.extend(structural_diversity_findings(creatives, data["variation_strength"]))
     if data["variation_strength"] == "high" and data["text_overlay_mode"] != "none":
         required_headlines = min(len(creatives), 6 if len(creatives) >= 8 else max(1, (len(creatives) * 3 + 3) // 4))
         if headline_count < required_headlines:
@@ -1083,6 +1264,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
             "pass": not findings and all(item["quality_check"]["pass"] for item in creatives),
             "findings": findings, "distinct_angles": angle_count, "distinct_layouts": layout_count,
             "distinct_hypothesis_combinations": combo_count, "distinct_headlines": headline_count,
+            "distinct_structural_signatures": signature_count,
         },
     }
 

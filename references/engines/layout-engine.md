@@ -22,6 +22,24 @@ Every layout definition must specify:
 - `typography`: scale, direction, and hierarchy
 - `graphic_structure`: grid, crop, rules, shapes, blocks, or callout system
 
+## Layout Signature Contract
+
+A layout label is not enough. Every selected layout must compile a `structural_signature`, `composition_geometry`, structured `typography_structure`, and structured `graphic_structure` into the final render prompt.
+
+The signature must state concrete geometry: number and relative size of zones, product scale and anchor, crop behavior, dedicated text zones, negative space, and the secondary visual element. The quality gate must fail when the generated prompt describes a generic centered poster while claiming a structurally different layout.
+
+Required signatures include:
+
+- `hero_product_first`: one dominant complete product at 45–70%, one headline field, no collage
+- `grid_multi_panel`: at least three unequal zones—dominant full view, secondary detail crop, separate type panel
+- `editorial_type_led`: oversized headline, micro-label, caption, deliberate line breaks, product/type interaction
+- `detail_macro_plus_full`: visible-detail macro at 35–60% plus a separate complete product view
+- `human_native_use`: candid phone-shot use, environmental context, no editorial system
+- `minimal_art_directed`: off-center product, restrained type, 55–70% deliberate empty space
+- `polished_human_lifestyle`: action and environment lead while product remains 35–45% prominent
+
+`typography_structure` must explicitly contain headline, scale, position, alignment, support, micro-label, orientation, line breaks, and product/type interaction. Graphic elements may include panels, crop windows, grids, thin rules, texture blocks, shapes, and non-claim number labels. Never use fake badges, ratings, certifications, offers, or interface chrome.
+
 ## Layout Patterns
 
 ### L1 — Product Hero
@@ -149,6 +167,8 @@ If the selected layout fights the angle, change the layout before writing the pr
 ## Batch Diversity
 
 In a four-image batch, use at least three structurally different layout families.
+
+In a high-variation five-image batch, require at least four distinct structural signatures and reject duplicate structural fingerprints. Prefer five distinct signatures when five layouts are available.
 
 In an eight-image batch, do not repeat the same layout more than twice unless the user explicitly requests controlled A/B variants.
 
