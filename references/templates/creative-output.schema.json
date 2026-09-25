@@ -11,7 +11,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "creative_id", "hypothesis", "placement_plan", "visual_plan", "render_prompt", "model_prompts", "negative_constraints", "evidence_lock", "quality_check"],
+        "required": ["id", "creative_id", "hypothesis", "placement_plan", "visual_plan", "render_prompt", "model_prompts", "negative_constraints", "evidence_lock", "quality_check", "typography_salience_check", "quality_pass"],
         "properties": {
           "id": { "type": "string" },
           "creative_id": { "type": "string" },
@@ -50,7 +50,7 @@
               "composition_geometry": { "type": "string" },
               "typography_structure": {
                 "type": "object",
-                "required": ["headline", "scale", "position", "alignment", "line_breaks", "support", "micro_label", "orientation", "interaction"]
+                "required": ["headline", "headline_scale", "headline_style", "headline_position", "headline_line_break_mode", "support_line", "support_position", "micro_label", "micro_label_position", "caption", "caption_position", "index_label", "index_position", "alignment", "orientation", "interaction_mode"]
               },
               "graphic_structure_details": {
                 "type": "object",
@@ -98,14 +98,16 @@
           },
           "quality_check": {
             "type": "object",
-            "required": ["pass", "findings", "revised", "prompt_word_count", "layout_salience_check", "checks"]
-          }
+            "required": ["pass", "findings", "revised", "prompt_word_count", "layout_salience_check", "typography_density_check", "typography_salience_check", "checks"]
+          },
+          "typography_salience_check": { "type": "object" },
+          "quality_pass": { "type": "boolean" }
         }
       }
     },
     "quality_checks": {
       "type": "object",
-      "required": ["pass", "findings", "distinct_angles", "distinct_layouts", "distinct_hypothesis_combinations", "distinct_structural_signatures"]
+      "required": ["pass", "findings", "distinct_angles", "distinct_layouts", "distinct_hypothesis_combinations", "distinct_structural_signatures", "distinct_headline_patterns"]
     }
   }
 }

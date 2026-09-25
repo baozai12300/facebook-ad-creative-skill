@@ -87,7 +87,7 @@ LAYOUT_SIGNATURES = {
         "text_zones": "oversized 2–3 line headline field, separate micro-label, and small caption zone",
         "negative_space": "one editorially open corner",
         "secondary_visual_element": "cropped letters, category label, thin rules, and one texture block",
-        "geometry": "Build a type-led editorial poster: oversized 2–3 line headline, separate micro-label, small caption, deliberate alignment and line breaks. Place the product off-center so it interacts with type; keep one open corner.",
+        "geometry": "Use a deliberate poster crop. Place the product off-center to interact with type; keep one editorially open corner.",
     },
     "detail_crop": {
         "signature": "detail_macro_plus_full", "zone_count": 3,
@@ -106,7 +106,7 @@ LAYOUT_SIGNATURES = {
         "text_zones": "one short conversational headline in available space",
         "negative_space": "natural environmental breathing room",
         "secondary_visual_element": "real hand, person interaction, or contextual prop; no editorial system",
-        "geometry": "Frame a believable candid phone-shot moment with the product naturally handled or used. Keep environmental context visible, avoid studio symmetry, poster typography, grids, cards, fake UI, and polished editorial ornament.",
+        "geometry": "Frame a believable candid phone-shot moment with the product naturally handled or used. Keep environmental context visible; use no editorial type system, grids, cards, fake UI, or studio symmetry.",
     },
     "minimal_editorial": {
         "signature": "minimal_art_directed", "zone_count": 2,
@@ -135,6 +135,44 @@ LAYOUT_SIGNATURES = {
         "negative_space": "one narrow or empty balancing cell",
         "secondary_visual_element": "unequal panels, thin rules, texture block, non-claim index",
         "geometry": "Create a clearly asymmetric multi-panel composition. Use at least three unequal visual zones rather than a centered poster: the largest panel holds one dominant complete product view, a smaller panel holds one secondary visible-detail crop, and typography occupies a separate structured zone.",
+    },
+}
+
+LAYOUT_TYPOGRAPHY_RULES = {
+    "product_hero": {
+        "headline_scale": "large", "headline_style": "clean", "headline_position": "upper-left",
+        "headline_line_break_mode": "multi-line", "support_position": "below headline",
+        "micro_label_position": "upper edge", "caption_position": "", "index_position": "",
+        "alignment": "left", "orientation": "horizontal", "interaction_mode": "separate",
+        "elements": ("headline", "support_line", "micro_label"),
+    },
+    "poster_editorial": {
+        "headline_scale": "oversized", "headline_style": "editorial", "headline_position": "center-left",
+        "headline_line_break_mode": "stacked", "support_position": "lower-left",
+        "micro_label_position": "vertical outer edge", "caption_position": "aligned to a thin rule", "index_position": "",
+        "alignment": "left", "orientation": "mixed", "interaction_mode": "overlap",
+        "elements": ("headline", "support_line", "micro_label", "caption"),
+    },
+    "asymmetric_grid": {
+        "headline_scale": "large", "headline_style": "condensed", "headline_position": "custom text panel",
+        "headline_line_break_mode": "stacked", "support_position": "separate lower text panel",
+        "micro_label_position": "panel edge", "caption_position": "", "index_position": "grid corner",
+        "alignment": "left", "orientation": "horizontal", "interaction_mode": "panel-contained",
+        "elements": ("headline", "support_line", "index_label"),
+    },
+    "detail_crop": {
+        "headline_scale": "medium", "headline_style": "editorial", "headline_position": "lower-left",
+        "headline_line_break_mode": "multi-line", "support_position": "",
+        "micro_label_position": "crop-window edge", "caption_position": "beneath headline", "index_position": "",
+        "alignment": "left", "orientation": "mixed", "interaction_mode": "edge-aligned",
+        "elements": ("headline", "micro_label", "caption"),
+    },
+    "ugc_native": {
+        "headline_scale": "medium", "headline_style": "clean", "headline_position": "upper-left",
+        "headline_line_break_mode": "single-line", "support_position": "below headline",
+        "micro_label_position": "", "caption_position": "", "index_position": "",
+        "alignment": "left", "orientation": "horizontal", "interaction_mode": "separate",
+        "elements": ("headline", "support_line"),
     },
 }
 
@@ -951,22 +989,77 @@ def visible_detail(data: Dict[str, Any]) -> str:
     return next((fact for fact in facts if any(word in fact.lower() for word in preferred)), facts[0] if facts else "a visibly confirmed surface or form detail")
 
 
-def build_typography_structure(layout_key: str, copy: Dict[str, Any]) -> Dict[str, str]:
-    structures = {
-        "poster_editorial": ("oversized", "separate poster field", "edge-aligned", "2–3 deliberate lines", "small category-style label", "horizontal with optional vertical micro-label", "product may overlap decorative letterforms without hiding copy"),
-        "asymmetric_grid": ("bold large", "dedicated grid panel", "left-aligned", "short stacked lines", "non-claim index", "horizontal", "type stays separate from image panels"),
-        "detail_crop": ("compact medium", "edge-aligned text zone", "left-aligned", "one or two lines", "visible-detail label", "horizontal with vertical micro-label", "type anchors the divider between macro and full view"),
-        "ugc_native": ("conversational medium", "natural empty scene area", "informal left alignment", "one short line", "", "horizontal", "no editorial type system or decorative overlap"),
-        "minimal_editorial": ("restrained small", "within large negative space", "precise off-center alignment", "one or two lines", "small category caption", "horizontal", "type remains quiet and does not compete with product"),
-        "product_hero": ("large primary", "upper-left field", "left-aligned", "one or two lines", "", "horizontal", "single dominant headline hierarchy"),
-        "lifestyle_story": ("large but scene-aware", "environmental negative space", "aligned to scene geometry", "one or two lines", "optional small caption", "horizontal", "type follows the action without covering person or product"),
+def neutral_category_label(data: Dict[str, Any]) -> str:
+    family = category_family(data)
+    if "bag" in data["product_category"].lower():
+        return "SLING BAG EDIT"
+    return {"mobile_accessories": "ACCESSORY EDIT", "skincare": "DAILY CARE EDIT", "electronics": "DESK EDIT"}.get(family, "PRODUCT EDIT")
+
+
+def neutral_support_line(data: Dict[str, Any], layout_key: str) -> str:
+    category = data["product_category"].lower()
+    if "bag" in category:
+        return "Everyday Carry"
+    if "hair dryer" in category:
+        return "Made for Your Routine"
+    if category_family(data) == "skincare":
+        return "A Step in Your Routine"
+    if category_family(data) == "electronics":
+        return "Built Around Your Setup"
+    return "Designed for Everyday Use"
+
+
+def build_typography_structure(data: Dict[str, Any], layout_key: str, copy: Dict[str, Any], index: int) -> Dict[str, str]:
+    if data["text_overlay_mode"] == "none":
+        return {key: "" for key in (
+            "headline", "headline_scale", "headline_style", "headline_position", "headline_line_break_mode",
+            "support_line", "support_position", "micro_label", "micro_label_position", "caption",
+            "caption_position", "index_label", "index_position", "alignment", "orientation", "interaction_mode"
+            , "scale", "position", "line_breaks", "support", "interaction"
+        )}
+    rule = LAYOUT_TYPOGRAPHY_RULES.get(layout_key, {
+        "headline_scale": "large", "headline_style": "clean", "headline_position": "upper-left",
+        "headline_line_break_mode": "multi-line", "support_position": "below headline",
+        "micro_label_position": "", "caption_position": "", "index_position": "",
+        "alignment": "left", "orientation": "horizontal", "interaction_mode": "separate",
+        "elements": ("headline", "support_line"),
+    })
+    allowed = set(rule["elements"])
+    support = copy.get("support") or neutral_support_line(data, layout_key)
+    if "commute / weekend" in support.lower() and "bag" not in data["product_category"].lower() and category_family(data) != "mobile_accessories":
+        support = neutral_support_line(data, layout_key)
+    label = neutral_category_label(data)
+    caption = f"Close Look / {visible_detail(data).title()}" if layout_key == "detail_crop" else "Everyday form, clearly framed"
+    values = {
+        "headline": copy.get("headline", ""), "support_line": support if "support_line" in allowed else "",
+        "micro_label": (f"{label} / {index + 1:02d}" if "micro_label" in allowed else ""),
+        "caption": caption if "caption" in allowed else "",
+        "index_label": f"/ {index + 1:02d}" if "index_label" in allowed else "",
     }
-    scale, position, alignment, line_breaks, micro_label, orientation, interaction = structures.get(
-        layout_key, ("clear primary", "designated headline zone", "left-aligned", "one or two lines", "", "horizontal", "type stays clear of product silhouette")
-    )
-    return {"headline": copy.get("headline", ""), "scale": scale, "position": position, "alignment": alignment,
-            "line_breaks": line_breaks, "support": copy.get("support", ""), "micro_label": micro_label,
-            "orientation": orientation, "interaction": interaction}
+    structure = {**values, **{key: value for key, value in rule.items() if key != "elements"}}
+    structure.update({
+        "scale": structure["headline_scale"], "position": structure["headline_position"],
+        "line_breaks": structure["headline_line_break_mode"], "support": structure["support_line"],
+        "interaction": structure["interaction_mode"],
+    })
+    return structure
+
+
+def typography_instruction(structure: Dict[str, str], headline_zone: str, language: str) -> str:
+    if not structure["headline"]:
+        return "No rendered words, letters, badges, buttons, added logos, or pseudo-text; preserve only native text printed on the product."
+    parts = [
+        f'Render headline exactly "{structure["headline"]}": {structure["headline_scale"]} {structure["headline_style"]}, {structure["headline_position"]}/{headline_zone}, {structure["headline_line_break_mode"]}, {structure["alignment"]}-aligned',
+    ]
+    for key, label, position_key in (
+        ("support_line", "support", "support_position"), ("micro_label", "micro-label", "micro_label_position"),
+        ("caption", "small caption", "caption_position"), ("index_label", "index", "index_position"),
+    ):
+        if structure[key]:
+            parts.append(f'{label} "{structure[key]}" at {structure[position_key]}')
+    parts.append(f'{structure["orientation"]}; {structure["interaction_mode"]}; align text to panels/crops/rules/grids/negative space')
+    parts.append(f"clear scale contrast; use {language} only; no extra copy")
+    return "; ".join(parts) + "."
 
 
 def build_graphic_structure(layout_key: str, signature: Dict[str, Any]) -> Dict[str, Any]:
@@ -985,9 +1078,9 @@ def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
         f"SCENE: {plan['scene']}; {plan['audience_scene_bridge']['visible_behavior']}.",
         f"PLACEMENT: {plan['placement_instruction']}",
         f"COMPOSITION: {plan['composition_geometry']} Visible detail for any crop: {plan['visible_detail']}.",
-        f"DESIGN: Type—{plan['typography_structure']['scale']}, {plan['typography_structure']['position']}, {plan['typography_structure']['alignment']}, {plan['typography_structure']['line_breaks']}; {plan['typography_structure']['interaction']}. Graphics—{plan['graphic_structure']['elements']}. No fake badge/proof/certification/offer marks, UI, or unsupported functional callouts.",
+        f"TYPOGRAPHY: {typography_instruction(plan['typography_structure'], layout['headline_zone'], data['language'])}",
+        f"DESIGN: Graphics—{plan['graphic_structure']['elements']}. No fake badge/proof/certification/offer marks, UI, or unsupported callouts.",
         f"LOOK: {dna['lighting']}; {dna['camera_language']}; {dna['color_mood']}.",
-        f"TEXT: {text_instruction(data, plan['copy'], layout['headline_zone'])}",
         "AVOID: " + "; ".join(negatives) + ".",
     ])
 
@@ -1069,7 +1162,7 @@ def structural_diversity_findings(creatives: List[Dict[str, Any]], variation_str
     signatures = [item["visual_plan"]["structural_signature"] for item in creatives]
     fingerprints = [(
         item["visual_plan"]["structural_signature"], item["visual_plan"]["composition_geometry"],
-        item["visual_plan"]["typography_structure"]["position"]
+        item["visual_plan"]["typography_structure"]["headline_position"]
     ) for item in creatives]
     findings = []
     if len(set(signatures)) < 4:
@@ -1077,6 +1170,48 @@ def structural_diversity_findings(creatives: List[Dict[str, Any]], variation_str
     if len(creatives) == 5 and len(set(fingerprints)) != len(creatives):
         findings.append("duplicate structural layouts detected in five-creative batch")
     return findings
+
+
+def typography_density_check(structure: Dict[str, str], text_mode: str) -> Dict[str, Any]:
+    keys = ("headline", "support_line", "micro_label", "caption", "index_label")
+    count = sum(bool(structure.get(key)) for key in keys)
+    findings = []
+    if text_mode == "none" and count:
+        findings.append("no-text mode contains typography elements")
+    elif text_mode != "none" and not 2 <= count <= 4:
+        findings.append(f"typography density outside 2–4 element range ({count})")
+    return {"pass": not findings, "findings": findings, "element_count": count}
+
+
+def typography_salience_check(plan: Dict[str, Any], prompt: str) -> Dict[str, Any]:
+    structure = plan["typography_structure"]
+    if not structure["headline"]:
+        return {"pass": True, "findings": [], "compiled_elements": 0}
+    required_secondary = 2 if plan["layout_key"] == "poster_editorial" else 1
+    secondary = [structure[key] for key in ("support_line", "micro_label", "caption", "index_label") if structure[key]]
+    findings = []
+    if len(secondary) < required_secondary:
+        findings.append("typography hierarchy lacks a secondary textual element")
+    if structure["headline"] not in prompt or any(value not in prompt for value in secondary):
+        findings.append("typography structure collapsed before reaching render prompt")
+    if not all(term in prompt.lower() for term in ("clear scale contrast", "align text to")):
+        findings.append("render prompt lacks explicit hierarchy and structural alignment")
+    return {"pass": not findings, "findings": findings, "compiled_elements": 1 + len(secondary)}
+
+
+def headline_pattern(structure: Dict[str, str]) -> str:
+    headline = structure.get("headline", "").lower()
+    if "/" in headline:
+        return "slash_form"
+    if structure.get("headline_line_break_mode") == "stacked":
+        return "stacked_phrase"
+    if any(word in headline.split() for word in ("move", "ready", "go", "daily")):
+        return "motion_lifestyle"
+    if structure.get("headline_style") == "editorial":
+        return "noun_editorial"
+    if structure.get("headline_scale") == "oversized":
+        return "oversized_phrase"
+    return "short_bold_phrase"
 
 
 def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dict[str, Any]:
@@ -1112,13 +1247,19 @@ def quality_gate(data: Dict[str, Any], plan: Dict[str, Any], prompt: str) -> Dic
     findings.extend(unsupported_claim_findings(data, prompt))
     salience = layout_salience_check(plan, prompt)
     findings.extend(salience["findings"])
+    density = typography_density_check(plan["typography_structure"], data["text_overlay_mode"])
+    typography_salience = typography_salience_check(plan, prompt)
+    findings.extend(density["findings"])
+    findings.extend(typography_salience["findings"])
     return {
         "pass": not findings,
         "findings": findings,
         "revised": False,
         "prompt_word_count": word_count,
         "layout_salience_check": salience,
-        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "layout salience", "copy tier classification", "hard claim evidence", "creative copy freedom", "placement safe-zone compiled", "unsupported claim check", "numeric claim source check", "before/after evidence check", "proof source check", "offer source check", "spec source check", "compatibility claim check", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
+        "typography_density_check": density,
+        "typography_salience_check": typography_salience,
+        "checks": ["product fidelity", "one-glance message", "product prominence", "layout clarity", "layout salience", "typography density", "typography salience", "copy tier classification", "hard claim evidence", "creative copy freedom", "placement safe-zone compiled", "unsupported claim check", "numeric claim source check", "before/after evidence check", "proof source check", "offer source check", "spec source check", "compatibility claim check", "headline grammar", "audience-angle compatibility", "scene-angle compatibility", "prompt word budget"],
     }
 
 
@@ -1146,7 +1287,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         bridge = build_audience_scene_bridge(data, audience, scene, benefit, index)
         copy = build_copy(data, angle, benefit, scene)
         signature = layout_signature(angle["layout"], layout, angle)
-        typography_structure = build_typography_structure(angle["layout"], copy)
+        typography_structure = build_typography_structure(data, angle["layout"], copy, index)
         graphic_structure = build_graphic_structure(angle["layout"], signature)
         copy_tiers = classify_copy(data, copy)
         evidence = collect_used_claims(data, angle, benefit, copy)
@@ -1222,6 +1363,8 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                 "copy_tiers": copy_tiers,
             },
             "quality_check": quality,
+            "typography_salience_check": quality["typography_salience_check"],
+            "quality_pass": quality["pass"],
         })
 
     angle_count = len({item["hypothesis"]["angle"] for item in creatives})
@@ -1231,6 +1374,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
     headline_count = len(set(headlines))
     structural_signatures = [item["visual_plan"]["structural_signature"] for item in creatives]
     signature_count = len(set(structural_signatures))
+    headline_patterns = {headline_pattern(item["visual_plan"]["typography_structure"]) for item in creatives if item["visual_plan"]["copy"]["headline"]}
     findings = []
     required_angles = min(len(creatives), {"low": 2, "medium": 3, "high": 4}[data["variation_strength"]])
     required_layouts = min(len(creatives), {"low": 1, "medium": 2, "high": 3}[data["variation_strength"]])
@@ -1245,6 +1389,8 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         required_headlines = min(len(creatives), 6 if len(creatives) >= 8 else max(1, (len(creatives) * 3 + 3) // 4))
         if headline_count < required_headlines:
             findings.append(f"headline diversity below required minimum ({headline_count}/{required_headlines})")
+        if len(creatives) >= 5 and len(headline_patterns) < 3:
+            findings.append(f"headline pattern diversity below required minimum ({len(headline_patterns)}/3)")
     hypothesis_audiences: Dict[Any, set] = {}
     for item in creatives:
         key = (item["hypothesis"]["angle"], item["hypothesis"]["core_benefit"], item["visual_plan"]["scene"])
@@ -1265,6 +1411,7 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
             "findings": findings, "distinct_angles": angle_count, "distinct_layouts": layout_count,
             "distinct_hypothesis_combinations": combo_count, "distinct_headlines": headline_count,
             "distinct_structural_signatures": signature_count,
+            "distinct_headline_patterns": len(headline_patterns),
         },
     }
 

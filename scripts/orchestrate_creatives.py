@@ -155,7 +155,14 @@ def create_creative_preview_plans(product_analysis: Dict[str, Any], campaign_set
                 "structural_signature": visual.get("structural_signature", ""),
                 "composition_geometry": visual.get("composition_geometry", ""),
             },
-            "copy": {"headline": copy_plan["headline"], "support": copy_plan["support"]},
+            "copy": {
+                "headline": copy_plan["headline"],
+                "support": copy_plan["support"],
+                "support_line": visual.get("typography_structure", {}).get("support_line", ""),
+                "micro_label": visual.get("typography_structure", {}).get("micro_label", ""),
+                "caption": visual.get("typography_structure", {}).get("caption", ""),
+                "index_label": visual.get("typography_structure", {}).get("index_label", ""),
+            },
             "placement": {
                 "platform": campaign_settings.get("platform", "meta").title(),
                 "placement": placement["placement"].replace("_", " ").title(),
@@ -168,6 +175,8 @@ def create_creative_preview_plans(product_analysis: Dict[str, Any], campaign_set
             },
             "render_prompt": item["render_prompt"],
             "quality": item["quality_check"],
+            "typography_salience_check": item["quality_check"].get("typography_salience_check", {}),
+            "quality_pass": item["quality_check"]["pass"],
         })
     return previews
 
