@@ -361,3 +361,73 @@ def test_eight_creative_batch_keeps_required_and_additional_layouts():
     assert "L9 Minimal Editorial" in layouts
     assert len(layouts) > len(required)
     assert output["quality_checks"]["pass"] is True
+
+
+def _layout_salience_sample(category="sling bag / crossbody bag"):
+    return compile_creatives.build_creatives(compile_creatives.normalize({
+        "product_name":"Geometric Sling Bag" if "bag" in category else "Compact Hair Dryer",
+        "product_category":category, "product_description":"Product image only.",
+        "reference_image":"product.png", "generation_count":5, "variation_strength":"high",
+        "reference_image_visual_facts":["black and gray geometric exterior","front zipper sections","compact form"] if "bag" in category else ["gunmetal finish","circular front grille","visible control buttons"],
+    }))
+
+
+def test_asymmetric_grid_compiles_three_unequal_zones():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L13 Asymmetric Grid")
+    prompt = item["render_prompt"].lower()
+    assert all(term in prompt for term in ("three unequal", "dominant complete product", "secondary visible-detail crop", "typography occupies a separate"))
+    assert item["quality_check"]["layout_salience_check"]["pass"] is True
+
+
+def test_editorial_poster_has_multilevel_typography():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L11 Editorial Poster")
+    typography = item["visual_plan"]["typography_structure"]
+    assert typography["scale"] == "oversized"
+    assert typography["micro_label"]
+    assert "small caption" in item["render_prompt"].lower()
+
+
+def test_detail_crop_has_macro_and_complete_view():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L12 Detail Crop")
+    assert "35–60%" in item["render_prompt"]
+    assert "complete product view" in item["render_prompt"].lower()
+    assert "front zipper sections" in item["render_prompt"].lower()
+
+
+def test_ugc_signature_is_structurally_different_from_poster():
+    plans = _layout_salience_sample()["creative_plans"]
+    ugc = next(x for x in plans if x["visual_plan"]["layout"] == "L5 UGC Native Static")
+    poster = next(x for x in plans if x["visual_plan"]["layout"] == "L11 Editorial Poster")
+    assert ugc["visual_plan"]["structural_signature"] == "human_native_use"
+    assert poster["visual_plan"]["structural_signature"] == "editorial_type_led"
+    assert "no editorial type system" in ugc["render_prompt"].lower()
+
+
+def test_product_hero_is_product_first():
+    item = next(x for x in _layout_salience_sample()["creative_plans"] if x["visual_plan"]["layout"] == "L1 Product Hero")
+    assert "45–70%" in item["render_prompt"] and "no collage" in item["render_prompt"].lower()
+    assert item["visual_plan"]["structural_signature"] == "hero_product_first"
+
+
+def test_count_five_has_at_least_four_structural_signatures_and_compact_prompts():
+    for category in ("sling bag / crossbody bag", "hair dryer"):
+        output = _layout_salience_sample(category)
+        assert output["quality_checks"]["distinct_structural_signatures"] >= 4
+        assert max(item["quality_check"]["prompt_word_count"] for item in output["creative_plans"]) <= 240
+        assert output["quality_checks"]["pass"] is True
+
+
+def test_duplicate_structural_layouts_are_rejected():
+    creatives = _layout_salience_sample()["creative_plans"]
+    for item in creatives[1:]:
+        item["visual_plan"]["structural_signature"] = creatives[0]["visual_plan"]["structural_signature"]
+        item["visual_plan"]["composition_geometry"] = creatives[0]["visual_plan"]["composition_geometry"]
+        item["visual_plan"]["typography_structure"]["position"] = creatives[0]["visual_plan"]["typography_structure"]["position"]
+    findings = compile_creatives.structural_diversity_findings(creatives, "high")
+    assert any("diversity" in finding for finding in findings)
+    assert any("duplicate structural layouts" in finding for finding in findings)
+
+
+def test_layout_salience_keeps_hard_claim_gate_unchanged():
+    data = compile_creatives.normalize({"product_name":"Geometric Sling Bag","product_category":"sling bag","product_description":"Product image only."})
+    assert compile_creatives.unsupported_hard_copy_findings(data, {"headline":"WATERPROOF","support":"","callouts":[],"cta":""})

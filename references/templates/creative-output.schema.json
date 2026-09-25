@@ -35,7 +35,7 @@
           },
           "visual_plan": {
             "type": "object",
-            "required": ["scene", "audience_scene_bridge", "visual_dna", "layout", "product_position", "headline_zone", "support_zone", "negative_space", "visual_flow", "typography", "graphic_structure", "text_mode", "copy"],
+            "required": ["scene", "audience_scene_bridge", "visual_dna", "layout", "product_position", "headline_zone", "support_zone", "negative_space", "visual_flow", "typography", "graphic_structure", "structural_signature", "composition_geometry", "typography_structure", "graphic_structure_details", "text_mode", "copy"],
             "properties": {
               "scene": { "type": "string" },
               "layout": { "type": "string" },
@@ -46,6 +46,16 @@
               "visual_flow": { "type": "string" },
               "typography": { "type": "string" },
               "graphic_structure": { "type": "string" },
+              "structural_signature": { "type": "string" },
+              "composition_geometry": { "type": "string" },
+              "typography_structure": {
+                "type": "object",
+                "required": ["headline", "scale", "position", "alignment", "line_breaks", "support", "micro_label", "orientation", "interaction"]
+              },
+              "graphic_structure_details": {
+                "type": "object",
+                "required": ["system", "zones", "elements", "restrictions"]
+              },
               "text_mode": { "type": "string" },
               "audience_scene_bridge": {
                 "type": "object",
@@ -88,14 +98,14 @@
           },
           "quality_check": {
             "type": "object",
-            "required": ["pass", "findings", "revised", "prompt_word_count", "checks"]
+            "required": ["pass", "findings", "revised", "prompt_word_count", "layout_salience_check", "checks"]
           }
         }
       }
     },
     "quality_checks": {
       "type": "object",
-      "required": ["pass", "findings", "distinct_angles", "distinct_layouts", "distinct_hypothesis_combinations"]
+      "required": ["pass", "findings", "distinct_angles", "distinct_layouts", "distinct_hypothesis_combinations", "distinct_structural_signatures"]
     }
   }
 }

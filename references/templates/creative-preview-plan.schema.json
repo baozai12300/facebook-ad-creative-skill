@@ -15,12 +15,16 @@
     },
     "visual": {
       "type": "object",
-      "required": ["scene", "product_action", "layout", "camera", "lighting", "visual_dna", "typography", "graphic_structure"],
+      "required": ["scene", "product_action", "layout", "camera", "lighting", "visual_dna", "typography", "graphic_structure", "typography_structure", "structural_signature", "composition_geometry"],
       "properties": {
         "scene": { "type": "string" }, "product_action": { "type": "string" },
         "layout": { "type": "string" }, "camera": { "type": "string" },
         "lighting": { "type": "string" }, "visual_dna": { "type": "string" },
-        "typography": { "type": "string" }, "graphic_structure": { "type": "string" }
+        "typography": { "type": "string" },
+        "graphic_structure": { "type": "object" },
+        "typography_structure": { "type": "object" },
+        "structural_signature": { "type": "string" },
+        "composition_geometry": { "type": "string" }
       }
     },
     "copy": { "type": "object", "required": ["headline", "support"], "properties": { "headline": { "type": "string" }, "support": { "type": "string" } } },
