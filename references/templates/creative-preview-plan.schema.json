@@ -3,7 +3,7 @@
   "$id": "https://example.com/creative-preview-plan.schema.json",
   "title": "CreativePreviewPlan",
   "type": "object",
-  "required": ["creative_id", "title", "status", "strategy", "visual", "copy", "placement", "evidence", "render_prompt", "quality", "typography_salience_check", "quality_pass"],
+  "required": ["creative_id", "title", "status", "strategy", "visual", "copy", "placement", "evidence", "render_prompt", "quality", "typography_salience_check", "quality_pass", "layout_intelligence"],
   "properties": {
     "creative_id": { "type": "string" },
     "title": { "type": "string" },
@@ -34,6 +34,16 @@
     "quality": { "type": "object" },
     "typography_salience_check": { "type": "object" },
     "quality_pass": { "type": "boolean" }
+    ,"layout_intelligence": {
+      "type": "object",
+      "required": ["used", "strength", "match_level", "sample_count"],
+      "properties": {
+        "used": { "type": "boolean" },
+        "strength": { "enum": ["strong", "medium", "soft", "none"] },
+        "match_level": { "type": "string" },
+        "sample_count": { "type": "integer", "minimum": 0 }
+      }
+    }
   },
   "additionalProperties": false
 }

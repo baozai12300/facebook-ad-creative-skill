@@ -45,6 +45,8 @@ TYPOGRAPHY: Render every populated typography field exactly. State headline scal
 
 DESIGN: {graphic_structure}. Functional callouts only from supplied evidence.
 
+When external layout intelligence is used, compile only selected normalized geometry, typography, and graphic hints. Do not serialize Miner JSON, match metadata, sample counts, or reference records into the prompt.
+
 LOOK: {lighting}. {camera_language}. {visual_style}. {color_mood}. Commercial realism, believable materials, clean separation.
 
 TEXT: {exact_copy_instruction}

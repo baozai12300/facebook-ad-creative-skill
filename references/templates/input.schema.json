@@ -65,6 +65,32 @@
       "type": "array",
       "items": { "type": "string" },
       "default": []
+    },
+    "creative_layout_intelligence": {
+      "type": "object",
+      "default": {},
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "match_level": { "type": "string", "default": "" },
+        "sample_count": { "type": "integer", "minimum": 0, "default": 0 },
+        "grammar": {
+          "type": "object",
+          "properties": {
+            "layout_families": { "type": "array" },
+            "composition_types": { "type": "array" },
+            "product_positions": { "type": "array" },
+            "product_scale_range": { "type": "array" },
+            "headline_positions": { "type": "array" },
+            "typography_levels": { "type": "array" },
+            "text_density": { "type": "array" },
+            "graphic_structure": { "type": "array" },
+            "visual_styles": { "type": "array" }
+          },
+          "additionalProperties": true
+        },
+        "references": { "type": "array", "maxItems": 3 }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": true

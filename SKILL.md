@@ -7,6 +7,8 @@ description: Generate structured Meta/Facebook ecommerce ad creatives using prod
 
 Use this skill for Facebook / Instagram / Meta ecommerce ad preview planning, ASC creative testing, product-led concepts, UGC-style static concepts, and placement-aware render-prompt compilation. The application chooses vision and image-generation providers.
 
+The application may also supply normalized Creative Layout Miner results. The Skill never calls the Miner API; it consumes optional design intelligence according to `references/engines/creative-layout-intelligence.md` and fully falls back when it is absent or unusable.
+
 ## Orchestration Boundary
 
 Read `references/engines/orchestration-pipeline.md` when integrating the Skill into an application.
@@ -132,6 +134,8 @@ Choose scene and style from product use, audience moment, price positioning, and
 ### Step 6 — Composition / Layout
 
 Select a layout and compile its concrete `LAYOUT_SIGNATURE`: spatial zones, product scale/position, crop behavior, text zones, negative space, typography hierarchy, graphic structure, and secondary element. A layout name without model-facing geometry is invalid. For high-variation five-image batches, require at least four unique structural signatures and reject duplicate structural fingerprints.
+
+When `creative_layout_intelligence` is usable, fuse its normalized grammar by strength instead of replacing the Layout Engine. Use strong recommendations on at most three concepts, medium on at most two, and soft on one; never copy a reference design.
 
 Read `references/engines/layout-engine.md`.
 
@@ -288,6 +292,7 @@ For each creative, return a draft preview plan and a compact render prompt:
 - Angle rules: `references/engines/angle-engine.md`
 - Scene and style: `references/engines/scene-style-engine.md`
 - Layout / composition: `references/engines/layout-engine.md`
+- Optional external layout knowledge: `references/engines/creative-layout-intelligence.md`
 - Meta placement rules: `references/engines/meta-placement-engine.md`
 - Render prompt compiler: `references/engines/prompt-compiler.md`
 - Evidence lock and claim safety: `references/engines/evidence-lock.md`

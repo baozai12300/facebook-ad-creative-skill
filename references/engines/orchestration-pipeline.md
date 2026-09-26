@@ -26,6 +26,7 @@ Product images (1–8)
 - Preview plans remain `draft` until the user selects them. Edits are applied before approval. Only `approved` plans may become render payloads.
 - `build_render_payloads(...)` prepares requests but performs no external call.
 - `generate_ad_image(...)` is an optional application boundary called only after approval; the selected provider implements the actual request.
+- The application owns Creative Layout Miner HTTP calls and passes normalized results as optional `creative_layout_intelligence`. Miner failure must never block creative planning.
 
 ## Evidence mapping
 
