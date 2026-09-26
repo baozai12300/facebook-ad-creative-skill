@@ -180,6 +180,7 @@ MINER_LAYOUT_ALIASES = {
     "product_hero": "product_hero", "hero": "product_hero", "large_product_cutout": "product_hero",
     "asymmetric_grid": "asymmetric_grid", "asymmetric": "asymmetric_grid", "multi_panel": "asymmetric_grid",
     "editorial_poster": "poster_editorial", "poster": "poster_editorial", "headline_block": "poster_editorial",
+    "typography_led": "poster_editorial", "offer_poster": "offer_value",
     "detail_crop": "detail_crop", "macro_detail": "detail_crop",
     "ugc_native": "ugc_native", "ugc": "ugc_native", "native": "ugc_native",
     "lifestyle_story": "lifestyle_story", "lifestyle": "lifestyle_story",
@@ -622,8 +623,12 @@ def select_angles(data: Dict[str, Any], count: int) -> List[Dict[str, str]]:
     pool_size = {"low": min(2, len(ranked)), "medium": min(max(4, count // 2), len(ranked)), "high": len(ranked)}[data["variation_strength"]]
     pool = ranked[:pool_size]
     selected = [dict(pool[index % len(pool)]) for index in range(count)]
-    selected = apply_batch_layout_coverage(selected) if count >= 5 else selected
-    return apply_layout_intelligence(data, selected)
+    strength = data["creative_layout_intelligence"]["strength"]
+    if strength == "none":
+        return apply_batch_layout_coverage(selected) if count >= 5 else selected
+    if strength == "soft":
+        selected = apply_batch_layout_coverage(selected) if count >= 5 else selected
+    return select_from_layout_candidate_pool(data, selected)
 
 
 def apply_batch_layout_coverage(angles: List[Dict[str, str]]) -> List[Dict[str, str]]:
@@ -686,42 +691,132 @@ def normalize_miner_style(intelligence: Dict[str, Any]) -> str:
     return ""
 
 
-def apply_layout_intelligence(data: Dict[str, Any], angles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _reference_pattern(reference: Any, index: int) -> str:
+    if isinstance(reference, dict):
+        for key in ("pattern", "fingerprint", "pattern_id", "id", "composition"):
+            if reference.get(key):
+                return _miner_phrase(reference[key])
+    return f"reference-pattern-{index + 1:02d}"
+
+
+def _candidate_layout_allowed(data: Dict[str, Any], layout: str) -> bool:
+    if layout == "offer_value" and not can_use_offer(data):
+        return False
+    if layout == "review_proof" and not can_use_social_proof(data):
+        return False
+    if layout in {"comparison", "problem_solution"} and not can_use_comparison_claim(data):
+        return False
+    return layout in LAYOUT_PROFILES
+
+
+def build_layout_candidate_pool(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    intelligence = data["creative_layout_intelligence"]
+    grammar = intelligence["grammar"]
+    families = []
+    for raw in grammar["layout_families"]:
+        token = _miner_token(raw)
+        mapped = MINER_LAYOUT_ALIASES.get(token) or next((layout for alias, layout in MINER_LAYOUT_ALIASES.items() if alias in token), None)
+        if mapped and _candidate_layout_allowed(data, mapped):
+            families.append((token, mapped))
+    if not families:
+        for raw in grammar["composition_types"]:
+            token = _miner_token(raw)
+            mapped = MINER_LAYOUT_ALIASES.get(token)
+            if mapped and _candidate_layout_allowed(data, mapped):
+                families.append((token, mapped))
+    compositions = [_miner_token(value) for value in grammar["composition_types"]] or ["native"]
+    headlines = [_miner_token(value) for value in grammar["headline_positions"]] or ["native"]
+    references = intelligence["references"]
+    pool = []
+    for family_index, (family, engine_layout) in enumerate(families):
+        for composition_index, composition in enumerate(compositions):
+            for headline_index, headline in enumerate(headlines):
+                reference = _reference_pattern(references[len(pool) % len(references)], len(pool) % len(references)) if references else ""
+                pool.append({
+                    "layout_family": family, "engine_layout": engine_layout,
+                    "composition_type": composition, "headline_position": headline,
+                    "product_position": _miner_phrase(grammar["product_positions"][len(pool) % len(grammar["product_positions"])]) if grammar["product_positions"] else "",
+                    "product_scale": _miner_scale(grammar["product_scale_range"]),
+                    "typography_levels": int(grammar["typography_levels"][len(pool) % len(grammar["typography_levels"])]) if grammar["typography_levels"] and isinstance(grammar["typography_levels"][len(pool) % len(grammar["typography_levels"])], (int, float)) else 0,
+                    "text_density": _miner_token(grammar["text_density"][len(pool) % len(grammar["text_density"])]) if grammar["text_density"] else "",
+                    "graphic_hints": list(grammar["graphic_structure"]),
+                    "reference_pattern": reference,
+                    "candidate_id": f"M{family_index + 1}-{composition_index + 1}-{headline_index + 1}",
+                })
+                if len(pool) == 10:
+                    return pool
+    # Small Miner grammars still become a useful combinatorial pool rather than one rigid template.
+    while pool and len(pool) < 6:
+        source = dict(pool[len(pool) % len(pool)])
+        source["candidate_id"] = f"M-V{len(pool) + 1}"
+        source["composition_type"] = (compositions + ["asymmetric", "split", "centered", "editorial"])[len(pool) % (len(compositions) + 4)]
+        source["headline_position"] = headlines[len(pool) % len(headlines)]
+        pool.append(source)
+    return pool
+
+
+def _candidate_score(data: Dict[str, Any], candidate: Dict[str, Any], index: int) -> int:
+    score = 100 - index
+    if data["campaign_goal"] in {"purchase", "retargeting"} and candidate["engine_layout"] in {"product_hero", "poster_editorial", "asymmetric_grid", "offer_value"}:
+        score += 12
+    if data["price_positioning"] in {"premium", "luxury"} and candidate["engine_layout"] in {"poster_editorial", "minimal_editorial", "product_hero"}:
+        score += 8
+    if candidate["composition_type"] in {"asymmetric", "split", "editorial"}:
+        score += 4
+    return score
+
+
+def select_from_layout_candidate_pool(data: Dict[str, Any], angles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     intelligence = data["creative_layout_intelligence"]
     strength = intelligence["strength"]
+    candidates = build_layout_candidate_pool(data)
     for angle in angles:
         angle["intelligence_applied"] = False
-    if strength == "none" or not angles:
+    if not candidates:
         return angles
-    candidates = miner_layout_candidates(intelligence)
-    quota = min(len(angles), {"strong": 3, "medium": 2, "soft": 1}[strength])
-    selected_indices = []
-    for index, angle in enumerate(angles):
-        if angle["layout"] in candidates and len(selected_indices) < quota:
-            selected_indices.append(index)
-    style = normalize_miner_style(intelligence)
-    cursor = 0
-    while len(selected_indices) < quota:
-        index = next((i for i in range(len(angles)) if i not in selected_indices), None)
-        if index is None:
+    ratio = {"strong": 0.70, "medium": 0.50, "soft": 0.20}[strength]
+    miner_count = min(len(angles), max(1, int(len(angles) * ratio + 0.999)))
+    ranked = sorted(enumerate(candidates), key=lambda pair: (-_candidate_score(data, pair[1], pair[0]), pair[0]))
+    chosen = []
+    seen = set()
+    seen_families = set()
+    seen_compositions = set()
+    for _, candidate in ranked:
+        if candidate["layout_family"] not in seen_families:
+            chosen.append(candidate)
+            seen_families.add(candidate["layout_family"])
+            seen_compositions.add(candidate["composition_type"])
+            seen.add((candidate["layout_family"], candidate["composition_type"], candidate["headline_position"]))
+        if len(chosen) == miner_count:
             break
-        if candidates:
-            proposed = candidates[cursor % len(candidates)]
-            layouts = [item["layout"] for item in angles]
-            layouts[index] = proposed
-            if proposed not in [item["layout"] for item in angles] and (len(angles) < 5 or data["variation_strength"] != "high" or len(set(layouts)) >= 4):
-                angles[index]["layout"] = proposed
-                if proposed == "ugc_native":
-                    angles[index]["style"] = "ugc_native"
-                elif proposed in {"product_hero", "minimal_editorial", "poster_editorial"}:
-                    angles[index]["style"] = "premium_editorial"
-            cursor += 1
-        selected_indices.append(index)
-    for index in selected_indices:
-        angles[index]["intelligence_applied"] = True
-        angles[index]["miner_layout_match"] = angles[index]["layout"] in candidates
+    for _, candidate in ranked:
+        signature = (candidate["layout_family"], candidate["composition_type"], candidate["headline_position"])
+        if candidate["composition_type"] not in seen_compositions and signature not in seen:
+            chosen.append(candidate)
+            seen_compositions.add(candidate["composition_type"])
+            seen.add(signature)
+        if len(chosen) == miner_count:
+            break
+    for _, candidate in ranked:
+        signature = (candidate["layout_family"], candidate["composition_type"], candidate["headline_position"])
+        if signature not in seen:
+            chosen.append(candidate)
+            seen.add(signature)
+        if len(chosen) == miner_count:
+            break
+    style = normalize_miner_style(intelligence)
+    for index, candidate in enumerate(chosen):
+        angle = angles[index]
+        angle["layout"] = candidate["engine_layout"]
+        angle["intelligence_applied"] = True
+        angle["miner_layout_match"] = True
+        angle["miner_candidate"] = candidate
         if style and strength in {"strong", "medium"}:
-            angles[index]["miner_style"] = style
+            angle["miner_style"] = style
+        elif angle["layout"] == "ugc_native":
+            angle["style"] = "ugc_native"
+        elif angle["layout"] in {"product_hero", "minimal_editorial", "poster_editorial"}:
+            angle["style"] = "premium_editorial"
     return angles
 
 
@@ -1147,18 +1242,23 @@ def _miner_phrase(value: Any) -> str:
 def apply_intelligence_to_signature(data: Dict[str, Any], signature: Dict[str, Any], angle: Dict[str, Any]) -> Dict[str, Any]:
     if not angle.get("intelligence_applied") or not angle.get("miner_layout_match"):
         return signature
-    grammar = data["creative_layout_intelligence"]["grammar"]
+    candidate = angle.get("miner_candidate", {})
     result = dict(signature)
-    composition = _miner_phrase(grammar["composition_types"][0]) if grammar["composition_types"] else ""
-    position = _miner_phrase(grammar["product_positions"][0]) if grammar["product_positions"] else ""
-    scale = _miner_scale(grammar["product_scale_range"])
+    composition = _miner_phrase(candidate.get("composition_type", ""))
+    position = candidate.get("product_position", "")
+    scale = candidate.get("product_scale", "")
     hints = [part for part in (composition, f"product {position}" if position else "", f"at {scale}" if scale else "") if part]
     if hints:
-        result["geometry"] = result["geometry"] + " Pattern guidance: " + "; ".join(hints) + "."
+        result["geometry"] = result["geometry"] + " Miner structure: " + "; ".join(hints) + "."
     if position:
         result["product_position"] = position
     if scale:
         result["product_scale"] = scale
+    if candidate:
+        result["signature"] = "__".join(filter(None, (
+            signature["signature"], candidate["layout_family"], candidate["composition_type"],
+            candidate.get("headline_position", ""), _miner_token(candidate.get("product_position", "")),
+        )))
     return result
 
 
@@ -1188,7 +1288,7 @@ def neutral_support_line(data: Dict[str, Any], layout_key: str) -> str:
     return "Designed for Everyday Use"
 
 
-def build_typography_structure(data: Dict[str, Any], layout_key: str, copy: Dict[str, Any], index: int, use_intelligence: bool = False) -> Dict[str, str]:
+def build_typography_structure(data: Dict[str, Any], layout_key: str, copy: Dict[str, Any], index: int, use_intelligence: bool = False, candidate: Dict[str, Any] | None = None) -> Dict[str, str]:
     if data["text_overlay_mode"] == "none":
         return {key: "" for key in (
             "headline", "headline_scale", "headline_style", "headline_position", "headline_line_break_mode",
@@ -1223,15 +1323,17 @@ def build_typography_structure(data: Dict[str, Any], layout_key: str, copy: Dict
     })
     if use_intelligence:
         grammar = data["creative_layout_intelligence"]["grammar"]
-        if grammar["headline_positions"]:
-            position = _miner_token(grammar["headline_positions"][0])
+        candidate = candidate or {}
+        if candidate.get("headline_position") and candidate["headline_position"] != "native":
+            position = candidate["headline_position"]
             structure["headline_position"] = {
                 "top_left": "upper-left", "top_center": "upper-center", "top_right": "upper-right",
                 "bottom_left": "lower-left", "bottom_center": "lower-center", "center_left": "center-left",
             }.get(position, structure["headline_position"])
             structure["position"] = structure["headline_position"]
-        desired = next((int(value) for value in grammar["typography_levels"] if isinstance(value, (int, float)) and 2 <= int(value) <= 4), 0)
-        density = _miner_token(grammar["text_density"][0]) if grammar["text_density"] else ""
+        desired = int(candidate.get("typography_levels", 0)) if 2 <= int(candidate.get("typography_levels", 0) or 0) <= 4 else 0
+        desired = min(desired, {"product_hero": 3, "asymmetric_grid": 3, "poster_editorial": 4, "detail_crop": 3, "ugc_native": 2}.get(layout_key, 3)) if desired else 0
+        density = candidate.get("text_density", "")
         if not desired:
             desired = {"low": 2, "medium": 3, "high": 4}.get(density, 0)
         current = sum(bool(structure[key]) for key in ("headline", "support_line", "micro_label", "caption", "index_label"))
@@ -1265,11 +1367,12 @@ def typography_instruction(structure: Dict[str, str], headline_zone: str, langua
     return "; ".join(parts) + "."
 
 
-def build_graphic_structure(layout_key: str, signature: Dict[str, Any], data: Dict[str, Any], use_intelligence: bool = False, layout_match: bool = False) -> Dict[str, Any]:
+def build_graphic_structure(layout_key: str, signature: Dict[str, Any], data: Dict[str, Any], use_intelligence: bool = False, layout_match: bool = False, candidate: Dict[str, Any] | None = None) -> Dict[str, Any]:
     elements = signature["secondary_visual_element"]
     if use_intelligence:
         hints = []
-        for raw in data["creative_layout_intelligence"]["grammar"]["graphic_structure"]:
+        raw_hints = (candidate or {}).get("graphic_hints", data["creative_layout_intelligence"]["grammar"]["graphic_structure"])
+        for raw in raw_hints:
             token = _miner_token(raw)
             hint = MINER_GRAPHIC_HINTS.get(token)
             if hint and hint not in hints:
@@ -1289,6 +1392,11 @@ def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
     layout = plan["layout_profile"]
     dna = plan["visual_dna"]
     negatives = plan["negative_constraints"]
+    look = (
+        f"{dna['name']}; {dna['lighting']}."
+        if plan.get("layout_intelligence", {}).get("used")
+        else f"{dna['lighting']}; {dna['camera_language']}; {dna['color_mood']}."
+    )
     return "\n\n".join([
         f"Create a {data['aspect_ratio']} Meta {data['placement'].replace('_', ' ')} ad.",
         f"PRODUCT: {product_identity_instruction(data)}",
@@ -1297,7 +1405,7 @@ def universal_prompt(data: Dict[str, Any], plan: Dict[str, Any]) -> str:
         f"COMPOSITION: {plan['composition_geometry']} Visible detail for any crop: {plan['visible_detail']}.",
         f"TYPOGRAPHY: {typography_instruction(plan['typography_structure'], layout['headline_zone'], data['language'])}",
         f"DESIGN: Graphics—{plan['graphic_structure']['elements']}. No fake badge/proof/certification/offer marks, UI, or unsupported callouts.",
-        f"LOOK: {dna['lighting']}; {dna['camera_language']}; {dna['color_mood']}.",
+        f"LOOK: {look}",
         "AVOID: " + "; ".join(negatives) + ".",
     ])
 
@@ -1438,14 +1546,16 @@ def intelligence_applied_correctly(data: Dict[str, Any], plan: Dict[str, Any]) -
     intelligence = data["creative_layout_intelligence"]
     grammar = intelligence["grammar"]
     applicable, matched = [], []
-    candidates = miner_layout_candidates(intelligence)
-    if candidates:
+    selected_family = metadata.get("selected_layout_family", "")
+    selected_layout = MINER_LAYOUT_ALIASES.get(selected_family)
+    if selected_family:
         applicable.append("layout_family")
-        if plan["layout_key"] in candidates:
+        if not selected_layout or plan["layout_key"] == selected_layout:
             matched.append("layout_family")
-    if grammar["composition_types"]:
+    selected_composition = metadata.get("selected_composition_type", "")
+    if selected_composition:
         applicable.append("composition")
-        if _miner_phrase(grammar["composition_types"][0]).lower() in plan["composition_geometry"].lower():
+        if _miner_phrase(selected_composition).lower() in plan["composition_geometry"].lower():
             matched.append("composition")
     if grammar["product_positions"] or grammar["product_scale_range"]:
         applicable.append("product_geometry")
@@ -1456,8 +1566,12 @@ def intelligence_applied_correctly(data: Dict[str, Any], plan: Dict[str, Any]) -
     if grammar["headline_positions"] or grammar["typography_levels"] or grammar["text_density"]:
         applicable.append("typography")
         if grammar["headline_positions"]:
-            expected = {"top_left": "upper-left", "top_center": "upper-center", "top_right": "upper-right", "bottom_left": "lower-left", "bottom_center": "lower-center", "center_left": "center-left"}.get(_miner_token(grammar["headline_positions"][0]))
-            if not expected or plan["typography_structure"]["headline_position"] == expected:
+            expected = {
+                {"top_left": "upper-left", "top_center": "upper-center", "top_right": "upper-right", "bottom_left": "lower-left", "bottom_center": "lower-center", "center_left": "center-left"}.get(_miner_token(value))
+                for value in grammar["headline_positions"]
+            }
+            expected.discard(None)
+            if not expected or plan["typography_structure"]["headline_position"] in expected:
                 matched.append("typography")
         else:
             matched.append("typography")
@@ -1549,8 +1663,8 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
         copy = build_copy(data, angle, benefit, scene)
         signature = layout_signature(angle["layout"], layout, angle)
         signature = apply_intelligence_to_signature(data, signature, angle)
-        typography_structure = build_typography_structure(data, angle["layout"], copy, index, bool(angle.get("intelligence_applied")))
-        graphic_structure = build_graphic_structure(angle["layout"], signature, data, bool(angle.get("intelligence_applied")), bool(angle.get("miner_layout_match")))
+        typography_structure = build_typography_structure(data, angle["layout"], copy, index, bool(angle.get("intelligence_applied")), angle.get("miner_candidate"))
+        graphic_structure = build_graphic_structure(angle["layout"], signature, data, bool(angle.get("intelligence_applied")), bool(angle.get("miner_layout_match")), angle.get("miner_candidate"))
         copy_tiers = classify_copy(data, copy)
         evidence = collect_used_claims(data, angle, benefit, copy)
         plan = {
@@ -1579,6 +1693,9 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
                 "strength": data["creative_layout_intelligence"]["strength"],
                 "match_level": data["creative_layout_intelligence"]["match_level"],
                 "sample_count": data["creative_layout_intelligence"]["sample_count"],
+                "selected_layout_family": angle.get("miner_candidate", {}).get("layout_family", ""),
+                "selected_composition_type": angle.get("miner_candidate", {}).get("composition_type", ""),
+                "selected_reference_pattern": angle.get("miner_candidate", {}).get("reference_pattern", ""),
             },
         }
         prompt = universal_prompt(data, plan)
@@ -1649,8 +1766,13 @@ def build_creatives(data: Dict[str, Any]) -> Dict[str, Any]:
     required_layouts = min(len(creatives), {"low": 1, "medium": 2, "high": 3}[data["variation_strength"]])
     if angle_count < required_angles:
         findings.append(f"angle diversity below required minimum ({angle_count}/{required_angles})")
-    if layout_count < required_layouts:
+    intelligence_strength_value = data["creative_layout_intelligence"]["strength"]
+    if layout_count < required_layouts and intelligence_strength_value not in {"strong", "medium"}:
         findings.append(f"layout diversity below required minimum ({layout_count}/{required_layouts})")
+    if intelligence_strength_value in {"strong", "medium"}:
+        required_signatures = min(len(creatives), 3 if len(creatives) <= 3 else 4)
+        if signature_count < required_signatures:
+            findings.append(f"Miner structural diversity below required minimum ({signature_count}/{required_signatures})")
     if data["variation_strength"] == "high" and combo_count != len(creatives):
         findings.append("duplicate angle-scene-layout hypotheses detected")
     findings.extend(structural_diversity_findings(creatives, data["variation_strength"]))

@@ -135,7 +135,7 @@ Choose scene and style from product use, audience moment, price positioning, and
 
 Select a layout and compile its concrete `LAYOUT_SIGNATURE`: spatial zones, product scale/position, crop behavior, text zones, negative space, typography hierarchy, graphic structure, and secondary element. A layout name without model-facing geometry is invalid. For high-variation five-image batches, require at least four unique structural signatures and reject duplicate structural fingerprints.
 
-When `creative_layout_intelligence` is usable, fuse its normalized grammar by strength instead of replacing the Layout Engine. Use strong recommendations on at most three concepts, medium on at most two, and soft on one; never copy a reference design.
+When `creative_layout_intelligence` is usable, build a 6–10 item layout candidate pool before final layout selection, then adapt Angle and Scene to the selected structures. Strong intelligence must drive at least 70% of plans; medium at least 50%; soft remains inspirational. Do not pre-allocate Hero/Lifestyle/Detail quotas, and never copy a reference design.
 
 Read `references/engines/layout-engine.md`.
 

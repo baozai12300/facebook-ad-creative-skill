@@ -177,7 +177,7 @@ def create_creative_preview_plans(product_analysis: Dict[str, Any], campaign_set
             "quality": item["quality_check"],
             "typography_salience_check": item["quality_check"].get("typography_salience_check", {}),
             "quality_pass": item["quality_check"]["pass"],
-            "layout_intelligence": item.get("layout_intelligence", {"used": False, "strength": "none", "match_level": "", "sample_count": 0}),
+            "layout_intelligence": item.get("layout_intelligence", {"used": False, "strength": "none", "match_level": "", "sample_count": 0, "selected_layout_family": "", "selected_composition_type": "", "selected_reference_pattern": ""}),
         })
     return previews
 

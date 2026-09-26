@@ -542,7 +542,7 @@ def test_v5_intelligence_strength_rules():
 def test_v5_strong_exact_match_applies_to_limited_batch_subset():
     output = _miner_sample()
     used = [item for item in output["creative_plans"] if item["layout_intelligence"]["used"]]
-    assert len(used) == 3
+    assert len(used) == 4
     assert all(item["layout_intelligence"]["strength"] == "strong" for item in used)
     assert all(item["quality_check"]["intelligence_applied_correctly"]["pass"] for item in used)
 
@@ -550,7 +550,7 @@ def test_v5_strong_exact_match_applies_to_limited_batch_subset():
 def test_v5_medium_and_soft_do_not_dominate_batch():
     medium = {**MINER_STRONG, "sample_count":12}
     soft = {**MINER_STRONG, "match_level":"ratio", "sample_count":3}
-    assert sum(item["layout_intelligence"]["used"] for item in _miner_sample(medium)["creative_plans"]) == 2
+    assert sum(item["layout_intelligence"]["used"] for item in _miner_sample(medium)["creative_plans"]) == 3
     assert sum(item["layout_intelligence"]["used"] for item in _miner_sample(soft)["creative_plans"]) == 1
 
 
@@ -598,3 +598,70 @@ def test_v5_prompt_compiler_never_dumps_raw_miner_json_or_references():
 def test_v5_references_are_capped_at_three():
     normalized = compile_creatives.normalize_layout_intelligence(MINER_STRONG)
     assert len(normalized["references"]) == 3
+
+
+def _three_plan_miner_comparison():
+    base = {
+        "product_name":"Geometric Sling Bag", "product_category":"sling bag / crossbody bag",
+        "product_description":"Product image only.", "reference_image":"bag.png",
+        "reference_image_visual_facts":["black and gray geometric exterior","single shoulder strap","front zipper sections"],
+        "generation_count":3, "variation_strength":"high", "placement":"square_feed",
+    }
+    off = compile_creatives.build_creatives(compile_creatives.normalize(base))
+    on = compile_creatives.build_creatives(compile_creatives.normalize({**base,"creative_layout_intelligence":MINER_STRONG}))
+    return off, on
+
+
+def test_miner_strong_changes_layout_selection():
+    off, on = _three_plan_miner_comparison()
+    off_selection = [(item["visual_plan"]["layout"], item["visual_plan"]["structural_signature"]) for item in off["creative_plans"]]
+    on_selection = [(item["visual_plan"]["layout"], item["visual_plan"]["structural_signature"]) for item in on["creative_plans"]]
+    assert off_selection != on_selection
+    assert sum(item["layout_intelligence"]["used"] for item in on["creative_plans"]) == 3
+    assert on["quality_checks"]["pass"] is True
+
+
+def test_miner_medium_changes_candidate_pool():
+    medium = {**MINER_STRONG, "sample_count":12}
+    data = compile_creatives.normalize({
+        "product_name":"Bag", "product_category":"sling bag", "product_description":"Image only.",
+        "generation_count":5, "creative_layout_intelligence":medium,
+    })
+    candidates = compile_creatives.build_layout_candidate_pool(data)
+    output = compile_creatives.build_creatives(data)
+    assert len(candidates) >= 6
+    assert sum(item["layout_intelligence"]["used"] for item in output["creative_plans"]) >= 3
+
+
+def test_no_forced_hero_lifestyle_detail_trio():
+    _, on = _three_plan_miner_comparison()
+    signatures = [item["visual_plan"]["structural_signature"].split("__",1)[0] for item in on["creative_plans"]]
+    assert signatures != ["hero_product_first", "polished_human_lifestyle", "detail_macro_plus_full"]
+    assert len(set(item["visual_plan"]["structural_signature"] for item in on["creative_plans"])) == 3
+
+
+def test_miner_changes_composition_geometry():
+    off, on = _three_plan_miner_comparison()
+    assert [item["visual_plan"]["composition_geometry"] for item in off["creative_plans"]] != [item["visual_plan"]["composition_geometry"] for item in on["creative_plans"]]
+    assert all("Miner structure:" in item["visual_plan"]["composition_geometry"] for item in on["creative_plans"])
+
+
+def test_miner_changes_typography_structure():
+    off, on = _three_plan_miner_comparison()
+    off_positions = [item["visual_plan"]["typography_structure"]["headline_position"] for item in off["creative_plans"]]
+    on_positions = [item["visual_plan"]["typography_structure"]["headline_position"] for item in on["creative_plans"]]
+    assert off_positions != on_positions
+    assert all(item["quality_check"]["typography_salience_check"]["pass"] for item in on["creative_plans"])
+
+
+def test_miner_changes_graphic_structure():
+    off, on = _three_plan_miner_comparison()
+    assert [item["visual_plan"]["graphic_structure_details"]["elements"] for item in off["creative_plans"]] != [item["visual_plan"]["graphic_structure_details"]["elements"] for item in on["creative_plans"]]
+    assert all("intelligence-inspired" in item["visual_plan"]["graphic_structure_details"]["elements"] for item in on["creative_plans"])
+
+
+def test_miner_off_preserves_legacy_behavior():
+    base = {"product_name":"Bag","product_category":"sling bag","product_description":"Image only.","generation_count":3}
+    legacy = compile_creatives.build_creatives(compile_creatives.normalize(base))
+    disabled = compile_creatives.build_creatives(compile_creatives.normalize({**base,"creative_layout_intelligence":{"enabled":False}}))
+    assert [(item["hypothesis"]["angle"],item["visual_plan"]["layout"],item["render_prompt"]) for item in legacy["creative_plans"]] == [(item["hypothesis"]["angle"],item["visual_plan"]["layout"],item["render_prompt"]) for item in disabled["creative_plans"]]

@@ -104,12 +104,15 @@
           "quality_pass": { "type": "boolean" },
           "layout_intelligence": {
             "type": "object",
-            "required": ["used", "strength", "match_level", "sample_count"],
+            "required": ["used", "strength", "match_level", "sample_count", "selected_layout_family", "selected_composition_type", "selected_reference_pattern"],
             "properties": {
               "used": { "type": "boolean" },
               "strength": { "enum": ["strong", "medium", "soft", "none"] },
               "match_level": { "type": "string" },
-              "sample_count": { "type": "integer", "minimum": 0 }
+              "sample_count": { "type": "integer", "minimum": 0 },
+              "selected_layout_family": { "type": "string" },
+              "selected_composition_type": { "type": "string" },
+              "selected_reference_pattern": { "type": "string" }
             }
           }
         }
