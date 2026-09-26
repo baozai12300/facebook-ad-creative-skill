@@ -159,7 +159,7 @@ Best for: technical or feature-heavy products.
 
 ## Layout Selection Rules
 
-If normalized Creative Layout Intelligence is present, use `references/engines/creative-layout-intelligence.md` to prioritize or blend recommended families according to strength. The native rules below remain the fallback and diversity guard; external recommendations never replace Evidence Lock or justify copying a reference.
+If normalized Creative Layout Intelligence is present, use `references/engines/creative-layout-intelligence.md` to build the candidate pool before choosing the final layout. The native rules below remain fallback and compatibility guidance; they must not force a Hero/Lifestyle/Detail trio over strong or medium Miner candidates. External recommendations never replace Evidence Lock or justify copying a reference.
 
 Choose layout from the angle, not randomly:
 
