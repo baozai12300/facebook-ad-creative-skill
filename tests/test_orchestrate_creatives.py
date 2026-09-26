@@ -110,3 +110,17 @@ def test_image_input_is_limited_to_eight():
         assert "1 to 8" in str(exc)
     else:
         raise AssertionError("Expected image limit validation")
+
+
+def test_preview_exposes_optional_layout_intelligence_debug_metadata():
+    analysis = orchestration.normalize_product_analysis(HAIR_DRYER_RAW)
+    intelligence = {
+        "enabled": True, "match_level": "industry+ad_type+ratio", "sample_count": 24,
+        "grammar": {"layout_families": ["product_hero"], "headline_positions": ["top-left"]},
+        "references": [],
+    }
+    plans = orchestration.create_creative_preview_plans(analysis, {
+        "generation_count": 5, "variation_strength": "high", "creative_layout_intelligence": intelligence,
+    })
+    assert any(plan["layout_intelligence"]["used"] for plan in plans)
+    assert all(plan["layout_intelligence"]["strength"] == "strong" for plan in plans)

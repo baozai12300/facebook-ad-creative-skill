@@ -500,3 +500,101 @@ def test_v4_headline_pattern_diversity_and_prompt_budget():
         if category == "hair dryer":
             typography_text = " ".join(str(item["visual_plan"]["typography_structure"]) for item in output["creative_plans"]).lower()
             assert "commute / weekend" not in typography_text
+
+
+MINER_STRONG = {
+    "enabled": True,
+    "match_level": "industry+ad_type+ratio",
+    "sample_count": 24,
+    "grammar": {
+        "layout_families": ["asymmetric_grid", "product_hero"],
+        "composition_types": ["asymmetric_product_hero"],
+        "product_positions": ["center-right"],
+        "product_scale_range": [50, 60],
+        "headline_positions": ["top-left"],
+        "typography_levels": [3],
+        "text_density": ["medium"],
+        "graphic_structure": ["large_product_cutout", "headline_block", "bottom_info_strip"],
+        "visual_styles": ["premium editorial"],
+    },
+    "references": [{"url":"https://example.com/ad-1","composition":"asymmetric"}] * 5,
+}
+
+
+def _miner_sample(intelligence=MINER_STRONG):
+    return compile_creatives.build_creatives(compile_creatives.normalize({
+        "product_name":"Geometric Sling Bag", "product_category":"sling bag / crossbody bag",
+        "product_description":"Product image only.", "reference_image":"bag.png",
+        "reference_image_visual_facts":["black and gray geometric exterior","single shoulder strap","front zipper sections"],
+        "generation_count":5, "variation_strength":"high", "placement":"square_feed",
+        "creative_layout_intelligence":intelligence,
+    }))
+
+
+def test_v5_intelligence_strength_rules():
+    assert compile_creatives.intelligence_strength("industry+ad_type+ratio", 20) == "strong"
+    assert compile_creatives.intelligence_strength("industry+ad_type+ratio", 8) == "medium"
+    assert compile_creatives.intelligence_strength("ad_type+ratio", 20) == "medium"
+    assert compile_creatives.intelligence_strength("ratio", 2) == "soft"
+    assert compile_creatives.intelligence_strength("", 0) == "none"
+
+
+def test_v5_strong_exact_match_applies_to_limited_batch_subset():
+    output = _miner_sample()
+    used = [item for item in output["creative_plans"] if item["layout_intelligence"]["used"]]
+    assert len(used) == 3
+    assert all(item["layout_intelligence"]["strength"] == "strong" for item in used)
+    assert all(item["quality_check"]["intelligence_applied_correctly"]["pass"] for item in used)
+
+
+def test_v5_medium_and_soft_do_not_dominate_batch():
+    medium = {**MINER_STRONG, "sample_count":12}
+    soft = {**MINER_STRONG, "match_level":"ratio", "sample_count":3}
+    assert sum(item["layout_intelligence"]["used"] for item in _miner_sample(medium)["creative_plans"]) == 2
+    assert sum(item["layout_intelligence"]["used"] for item in _miner_sample(soft)["creative_plans"]) == 1
+
+
+def test_v5_no_miner_data_falls_back_without_failure():
+    base = {"product_name":"Bag","product_category":"sling bag","product_description":"Image only.","generation_count":5}
+    without = compile_creatives.build_creatives(compile_creatives.normalize(base))
+    empty = compile_creatives.build_creatives(compile_creatives.normalize({**base,"creative_layout_intelligence":{"enabled":True,"sample_count":0,"grammar":{}}}))
+    assert without["input_summary"]["layout_intelligence_strength"] == "none"
+    assert [item["visual_plan"]["layout"] for item in without["creative_plans"]] == [item["visual_plan"]["layout"] for item in empty["creative_plans"]]
+    assert empty["quality_checks"]["pass"] is True
+
+
+def test_v5_typography_product_scale_and_graphics_absorb_hints():
+    used = [item for item in _miner_sample()["creative_plans"] if item["layout_intelligence"]["used"]]
+    assert all(item["visual_plan"]["typography_structure"]["headline_position"] == "upper-left" for item in used)
+    matched_layouts = [item for item in used if item["visual_plan"]["layout"] in {"L1 Product Hero", "L13 Asymmetric Grid"}]
+    assert matched_layouts and all("50–60% visual scale" in item["visual_plan"]["composition_geometry"] for item in matched_layouts)
+    assert all("intelligence-inspired" in item["visual_plan"]["graphic_structure_details"]["elements"] for item in used)
+    assert all(item["visual_plan"]["visual_dna"]["name"] == "Premium Editorial" for item in used)
+
+
+def test_v5_miner_preserves_batch_structural_diversity():
+    output = _miner_sample()
+    assert output["quality_checks"]["distinct_structural_signatures"] >= 4
+    assert output["quality_checks"]["pass"] is True
+
+
+def test_v5_miner_does_not_bypass_evidence_lock():
+    miner = {**MINER_STRONG, "grammar":{**MINER_STRONG["grammar"], "graphic_structure":["offer_badge"]}}
+    output = _miner_sample(miner)
+    positive = " ".join(item["render_prompt"].split("AVOID:",1)[0] for item in output["creative_plans"]).lower()
+    assert "offer badge" not in positive
+    assert all(item["evidence_lock"]["used_claims"] == [] for item in output["creative_plans"])
+
+
+def test_v5_prompt_compiler_never_dumps_raw_miner_json_or_references():
+    output = _miner_sample()
+    prompts = " ".join(item["render_prompt"] for item in output["creative_plans"])
+    assert '"layout_families"' not in prompts
+    assert "https://example.com/ad-1" not in prompts
+    assert "sample_count" not in prompts
+    assert max(item["quality_check"]["prompt_word_count"] for item in output["creative_plans"]) <= 240
+
+
+def test_v5_references_are_capped_at_three():
+    normalized = compile_creatives.normalize_layout_intelligence(MINER_STRONG)
+    assert len(normalized["references"]) == 3

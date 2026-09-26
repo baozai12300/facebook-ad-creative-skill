@@ -11,7 +11,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "creative_id", "hypothesis", "placement_plan", "visual_plan", "render_prompt", "model_prompts", "negative_constraints", "evidence_lock", "quality_check", "typography_salience_check", "quality_pass"],
+        "required": ["id", "creative_id", "hypothesis", "placement_plan", "visual_plan", "render_prompt", "model_prompts", "negative_constraints", "evidence_lock", "quality_check", "typography_salience_check", "quality_pass", "layout_intelligence"],
         "properties": {
           "id": { "type": "string" },
           "creative_id": { "type": "string" },
@@ -98,10 +98,20 @@
           },
           "quality_check": {
             "type": "object",
-            "required": ["pass", "findings", "revised", "prompt_word_count", "layout_salience_check", "typography_density_check", "typography_salience_check", "checks"]
+            "required": ["pass", "findings", "revised", "prompt_word_count", "layout_salience_check", "typography_density_check", "typography_salience_check", "intelligence_applied_correctly", "checks"]
           },
           "typography_salience_check": { "type": "object" },
-          "quality_pass": { "type": "boolean" }
+          "quality_pass": { "type": "boolean" },
+          "layout_intelligence": {
+            "type": "object",
+            "required": ["used", "strength", "match_level", "sample_count"],
+            "properties": {
+              "used": { "type": "boolean" },
+              "strength": { "enum": ["strong", "medium", "soft", "none"] },
+              "match_level": { "type": "string" },
+              "sample_count": { "type": "integer", "minimum": 0 }
+            }
+          }
         }
       }
     },

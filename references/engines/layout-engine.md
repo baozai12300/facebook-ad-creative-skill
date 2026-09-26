@@ -159,6 +159,8 @@ Best for: technical or feature-heavy products.
 
 ## Layout Selection Rules
 
+If normalized Creative Layout Intelligence is present, use `references/engines/creative-layout-intelligence.md` to prioritize or blend recommended families according to strength. The native rules below remain the fallback and diversity guard; external recommendations never replace Evidence Lock or justify copying a reference.
+
 Choose layout from the angle, not randomly:
 
 - Product clarity / premium → L1 or L9

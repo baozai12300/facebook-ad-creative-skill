@@ -54,6 +54,12 @@ Pass only when the layout's defining geometry appears in the final render prompt
 
 Fail if the layout name changes but product scale, anchor, text position, and structural geometry remain effectively identical.
 
+### 4b. Creative Layout Intelligence
+
+When a plan declares Miner intelligence as used, verify partial alignment across recommended layout family, composition, product scale/position, typography, and graphic structure. Strong and medium plans must match at least two applicable dimensions. Soft intelligence remains inspirational and does not create a strict failure.
+
+Fail if raw Miner JSON, sample metadata, or reference URLs enter the render prompt. Ignore absent, timed-out, malformed, empty, or zero-sample intelligence and use the native engine unchanged.
+
 ### 5. Copy Accuracy
 
 Pass only if:
